@@ -1,0 +1,7 @@
+<svg width="500" height="500" viewBox="0 0 500 500" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Default avatar 03">
+  <rect width="500" height="500" fill="#064E3B"/>
+  <circle cx="250" cy="250" r="170" fill="#FDE68A"/>
+  <circle cx="200" cy="220" r="20" fill="#064E3B"/>
+  <circle cx="300" cy="220" r="20" fill="#064E3B"/>
+  <path d="M190 290 Q250 340 310 290" stroke="#064E3B" stroke-width="20" fill="none" stroke-linecap="round"/>
+</svg>

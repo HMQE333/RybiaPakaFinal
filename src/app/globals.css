@@ -1,0 +1,436 @@
+@import "tailwindcss";
+
+:root {
+  --background: #0f0f0f;
+  --background-2: #070703;
+  --background-3: #181818;
+  --background-4: #242424;
+
+  --foreground: #f2ede5;
+  --foreground-2: #99a1af;
+
+  --accent: #00ce00;
+  --accent-2: #00ce00;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-background-2: var(--background-2);
+  --color-background-3: var(--background-3);
+  --color-background-4: var(--background-4);
+
+  --color-foreground: var(--foreground);
+  --color-foreground-2: var(--foreground-2);
+
+  --color-accent: var(--accent);
+  --color-accent-2: var(--accent-2);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  min-height: 100%;
+}
+
+body.app-loading {
+  overflow: hidden;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  font-size: clamp(14px, 0.3vw + 13px, 18px);
+}
+
+.page-transition {
+  min-height: 100%;
+  animation: page-enter 220ms ease;
+  will-change: opacity;
+}
+
+.app-loader {
+  opacity: 1;
+  transition: opacity 220ms ease;
+  will-change: opacity;
+}
+
+.app-loader--exit {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Mini firework particles for AddFriendButton */
+@keyframes particle-burst {
+  0% {
+    transform: translate(0, 0) scale(1);
+    opacity: 1;
+  }
+  80% {
+    opacity: 0.7;
+  }
+  100% {
+    transform: translate(var(--tx, 0), var(--ty, 0)) scale(0.85);
+    opacity: 0;
+  }
+}
+
+.particle {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  background: var(--color-accent);
+  border-radius: 9999px;
+  transform: translate(0, 0) scale(1);
+  animation: particle-burst 650ms ease-out forwards;
+}
+
+@keyframes fish-swim {
+  0% {
+    transform: translateX(-100%) translateY(0) rotate(0deg);
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.3;
+  }
+  50% {
+    transform: translateX(50vw) translateY(-20px) rotate(5deg);
+    opacity: 0.5;
+  }
+  90% {
+    opacity: 0.3;
+  }
+  100% {
+    transform: translateX(100vw) translateY(0) rotate(0deg);
+    opacity: 0;
+  }
+}
+
+.fish-animation {
+  position: absolute;
+  animation: fish-swim 20s linear infinite;
+  pointer-events: none;
+  z-index: 0;
+}
+
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(calc(-100% - var(--gap)));
+  }
+}
+
+@keyframes marquee-vertical {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(calc(-100% - var(--gap)));
+  }
+}
+
+.animate-marquee {
+  animation: marquee var(--duration) linear infinite;
+}
+
+.animate-marquee-vertical {
+  animation: marquee-vertical var(--duration) linear infinite;
+}
+
+/* Custom Scrollbar for Discord-like look */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+  background-color: #2b2d31;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: #1a1b1e;
+  border-radius: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background-color: #2b2d31;
+}
+
+/* Forum micro-interactions */
+.interactive-press {
+  transition:
+    transform 140ms ease,
+    box-shadow 240ms ease,
+    background-color 200ms ease,
+    color 200ms ease,
+    border-color 200ms ease;
+}
+
+.interactive-press:hover {
+  transform: translateY(-1px) scale(1.01);
+}
+
+.interactive-press:active {
+  transform: translateY(1px) scale(0.98);
+}
+
+.interactive-card {
+  transition:
+    transform 200ms ease,
+    border-color 200ms ease,
+    background-color 200ms ease,
+    box-shadow 220ms ease;
+}
+
+.interactive-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.25);
+}
+
+@keyframes like-pop {
+  0% {
+    transform: scale(0.9);
+  }
+  60% {
+    transform: scale(1.15);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.animate-like {
+  animation: like-pop 220ms ease;
+}
+
+@keyframes toast-pop {
+  0% {
+    transform: translate(-50%, 12px);
+    opacity: 0;
+  }
+  100% {
+    transform: translate(-50%, 0);
+    opacity: 1;
+  }
+}
+
+.animate-toast {
+  animation: toast-pop 240ms ease;
+}
+
+@keyframes shimmer-accent {
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 120% 50%;
+  }
+}
+
+.shimmer-accent {
+  background-image: linear-gradient(
+    120deg,
+    rgba(0, 206, 0, 0.1),
+    rgba(0, 133, 0, 0.3),
+    rgba(0, 206, 0, 0.1)
+  );
+  background-size: 200% 200%;
+  animation: shimmer-accent 3s ease infinite;
+}
+
+.filter-pill {
+  box-shadow: 0 10px 30px rgba(0, 206, 0, 0.18);
+}
+
+@keyframes modal-rise {
+  0% {
+    transform: translateY(12px) scale(0.98);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes page-enter {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+.modal-pop {
+  animation: modal-rise 240ms ease;
+}
+
+@media (min-width: 1280px) {
+  .max-w-2xl {
+    max-width: 48rem;
+  }
+  .max-w-3xl {
+    max-width: 56rem;
+  }
+  .max-w-4xl {
+    max-width: 64rem;
+  }
+  .max-w-5xl {
+    max-width: 72rem;
+  }
+  .max-w-6xl {
+    max-width: 80rem;
+  }
+}
+
+@media (min-width: 1536px) {
+  .max-w-2xl {
+    max-width: 52rem;
+  }
+  .max-w-3xl {
+    max-width: 60rem;
+  }
+  .max-w-4xl {
+    max-width: 72rem;
+  }
+  .max-w-5xl {
+    max-width: 80rem;
+  }
+  .max-w-6xl {
+    max-width: 88rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  .page-transition {
+    animation: none;
+  }
+}
+
+@keyframes welcome-progress {
+  0% {
+    transform: scaleX(0);
+  }
+  100% {
+    transform: scaleX(1);
+  }
+}
+
+@keyframes partner-pop {
+  0% {
+    transform: translateY(40px) scale(0.92);
+    opacity: 0;
+  }
+  60% {
+    transform: translateY(-6px) scale(1.02);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
+.animate-partner-pop {
+  animation: partner-pop 300ms ease forwards;
+}
+
+@keyframes stat-rise {
+  0% {
+    transform: translateY(10px) scale(0.98);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes stat-shine {
+  0% {
+    transform: translateX(-150%);
+  }
+  60% {
+    transform: translateX(150%);
+  }
+  100% {
+    transform: translateX(150%);
+  }
+}
+
+.stat-card {
+  position: relative;
+  overflow: hidden;
+  animation: stat-rise 320ms ease both;
+}
+
+.stat-card::after {
+  content: "";
+  position: absolute;
+  inset: -40%;
+  background: linear-gradient(
+    120deg,
+    transparent,
+    rgba(0, 206, 0, 0.12),
+    transparent
+  );
+  transform: translateX(-150%);
+  animation: stat-shine 6s ease-in-out infinite;
+  pointer-events: none;
+}
+
+/* Kontakt page background and motion */
+.contact-glow {
+  position: absolute;
+  filter: blur(80px);
+  opacity: 0.5;
+  border-radius: 9999px;
+  pointer-events: none;
+}
+
+.contact-glow-1 {
+  width: 320px;
+  height: 320px;
+  background: radial-gradient(circle, rgba(0, 206, 0, 0.35), transparent 60%);
+  top: 120px;
+  left: 10%;
+  animation: float-slow 14s ease-in-out infinite;
+}
+
+.contact-glow-2 {
+  width: 260px;
+  height: 260px;
+  background: radial-gradient(circle, rgba(0, 133, 0, 0.45), transparent 65%);
+  bottom: 120px;
+  right: 12%;
+  animation: float-slow 16s ease-in-out infinite reverse;
+}
+
+.contact-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+  background-size: 120px 120px;
+  opacity: 0.25;
+  mask-image: radial-gradient(circle at center, black 50%, transparent 75%);
+  pointer-events: none;
+}
+
+@keyframes float-slow {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+  50% {
+    transform: translate3d(8px, -10px, 0);
+  }
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+}

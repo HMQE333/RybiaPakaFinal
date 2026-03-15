@@ -1,0 +1,19 @@
+{
+  "name": "rybiapaka-data",
+  "private": true,
+  "type": "commonjs",
+  "scripts": {
+    "start": "node src/start.js",
+    "server": "node src/server.js",
+    "db:migrate:deploy": "prisma migrate deploy --schema ./prisma/schema.prisma",
+    "migrate:deploy": "prisma migrate deploy --schema ./prisma/schema.prisma",
+    "prisma:generate": "prisma generate --schema ./prisma/schema.prisma"
+  },
+  "dependencies": {
+    "@prisma/client": "5.22.0",
+    "cors": "^2.8.5",
+    "express": "^4.19.2",
+    "express-rate-limit": "^7.0.0",
+    "prisma": "5.22.0"
+  }
+}

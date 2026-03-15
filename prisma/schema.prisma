@@ -1,0 +1,328 @@
+// prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            Int       @id @default(autoincrement())
+  email         String    @unique
+  emailVerified Boolean   @default(false)
+  passwordHash  String?
+  image         String?
+  name          String    @default("")
+  nick          String?   @unique
+  role          String    @default("NORMAL")
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Moderation
+  bannedAt               DateTime?
+  banReason              String?
+  banByLabel             String?
+  suspensionUntil        DateTime?
+  suspensionReason       String?
+  suspensionByLabel      String?
+  suspensionAt           DateTime?
+  moderationNoticeType   String?
+  moderationNoticeReason String?
+  moderationNoticeByLabel String?
+  moderationNoticeAt     DateTime?
+  moderationNoticeSeenAt DateTime?
+
+  // Profile additions
+  username  String?  @unique
+  avatarUrl String?
+  bio       String?
+  age       Int?
+  joinedAt  DateTime @default(now())
+  rankId    String?
+  regionId  String?
+
+  // relations
+  rank           Rank?               @relation(fields: [rankId], references: [id], onUpdate: Cascade, onDelete: SetNull)
+  region         Region?             @relation(fields: [regionId], references: [id], onUpdate: Cascade, onDelete: SetNull)
+  methods        UserFishingMethod[]
+  sentMessages   Message[]           @relation("sentMessages")
+  recvMessages   Message[]           @relation("recvMessages")
+  channelMessages ChannelMessage[]
+  sentRequests   FriendRequest[]     @relation("sentRequests")
+  recvRequests   FriendRequest[]     @relation("recvRequests")
+  notifications  Notification[]
+  friendshipsA   Friendship[]        @relation("friendA")
+  friendshipsB   Friendship[]        @relation("friendB")
+  reportsFiled   Report[]            @relation("ReportReporter")
+  reportsHandled Report[]            @relation("ReportHandler")
+  adminLogs      AdminLog[]
+
+  // existing relations
+  accounts  Account[]
+  sessions  Session[]
+  threads   Thread[]
+  posts     Post[]
+  reactions Reaction[]
+
+  @@index([username])
+  @@index([rankId])
+  @@index([regionId])
+}
+
+model Account {
+  id                     Int      @id @default(autoincrement())
+  userId                 Int
+  providerId             String
+  accountId              String
+  accessToken            String?
+  refreshToken           String?
+  idToken                String?
+  accessTokenExpiresAt   DateTime?
+  refreshTokenExpiresAt  DateTime?
+  scope                  String?
+  password               String?
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([providerId, accountId])
+  @@index([userId])
+}
+
+model Session {
+  id         Int      @id @default(autoincrement())
+  token      String   @unique
+  userId     Int
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  ipAddress  String?
+  userAgent  String?
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, expiresAt])
+}
+
+model Verification {
+  id         Int      @id @default(autoincrement())
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([identifier, value])
+  @@index([identifier])
+}
+
+model Board {
+  id      Int      @id @default(autoincrement())
+  name    String
+  threads Thread[]
+}
+
+model Thread {
+  id        Int      @id @default(autoincrement())
+  title     String
+  content   String
+  boardId   Int
+  authorId  Int
+  board     Board    @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  posts     Post[]
+  createdAt DateTime @default(now())
+  deletedAt DateTime?
+
+  @@index([boardId, createdAt])
+  @@index([deletedAt])
+}
+
+model Post {
+  id        Int        @id @default(autoincrement())
+  content   String
+  threadId  Int
+  authorId  Int
+  parentId  Int?
+  thread    Thread     @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  author    User       @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  parent    Post?      @relation("PostParent", fields: [parentId], references: [id])
+  children  Post[]     @relation("PostParent")
+  reactions Reaction[]
+  createdAt DateTime   @default(now())
+  deletedAt DateTime?
+
+  @@index([threadId, createdAt])
+  @@index([authorId, createdAt])
+  @@index([deletedAt])
+}
+
+model Reaction {
+  id     Int    @id @default(autoincrement())
+  type   String
+  postId Int
+  userId Int
+  post   Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, userId, type])
+  @@index([userId])
+}
+
+// New social/profile models
+model Rank {
+  id       String  @id @default(cuid())
+  name     String  @unique
+  colorHex String?
+  users    User[]
+}
+
+model Region {
+  id    String @id @default(cuid())
+  name  String @unique
+  users User[]
+}
+
+model FishingMethod {
+  id    String              @id @default(cuid())
+  name  String              @unique
+  users UserFishingMethod[]
+}
+
+model UserFishingMethod {
+  userId   Int
+  methodId String
+  user     User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  method   FishingMethod @relation(fields: [methodId], references: [id], onDelete: Cascade)
+
+  @@id([userId, methodId])
+  @@index([methodId])
+}
+
+model Message {
+  id         String    @id @default(cuid())
+  senderId   Int
+  receiverId Int
+  text       String
+  createdAt  DateTime  @default(now())
+  readAt     DateTime?
+  sender     User      @relation("sentMessages", fields: [senderId], references: [id], onDelete: Cascade)
+  receiver   User      @relation("recvMessages", fields: [receiverId], references: [id], onDelete: Cascade)
+
+  @@index([senderId, createdAt])
+  @@index([receiverId, createdAt])
+  @@index([senderId, receiverId, createdAt])
+  @@index([receiverId, readAt])
+}
+
+model ChannelMessage {
+  id        String   @id @default(cuid())
+  channelId String
+  authorId  Int?
+  authorName String?
+  text      String
+  createdAt DateTime @default(now())
+
+  author User? @relation(fields: [authorId], references: [id], onDelete: SetNull)
+
+  @@index([channelId, createdAt])
+  @@index([authorId, createdAt])
+}
+
+model FriendRequest {
+  id         String        @id @default(cuid())
+  senderId   Int
+  receiverId Int
+  status     String        @default("PENDING")
+  createdAt  DateTime      @default(now())
+  sender     User          @relation("sentRequests", fields: [senderId], references: [id], onDelete: Cascade)
+  receiver   User          @relation("recvRequests", fields: [receiverId], references: [id], onDelete: Cascade)
+
+  @@unique([senderId, receiverId])
+  @@index([receiverId, status])
+  @@index([senderId, status])
+}
+
+model Friendship {
+  id        String   @id @default(cuid())
+  aId       Int
+  bId       Int
+  createdAt DateTime @default(now())
+  a         User     @relation("friendA", fields: [aId], references: [id], onDelete: Cascade)
+  b         User     @relation("friendB", fields: [bId], references: [id], onDelete: Cascade)
+
+  @@unique([aId, bId])
+  @@index([bId])
+}
+
+model Notification {
+  id        String    @id @default(cuid())
+  userId    Int
+  type      String
+  payload   String?
+  readAt    DateTime?
+  createdAt DateTime  @default(now())
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+}
+
+model Report {
+  id          String         @id @default(cuid())
+  title       String
+  description String?
+  category    String
+  status      String         @default("PENDING")
+  reporterId  Int?
+  reporter    User?          @relation("ReportReporter", fields: [reporterId], references: [id], onDelete: SetNull)
+  handledById Int?
+  handledBy   User?          @relation("ReportHandler", fields: [handledById], references: [id], onDelete: SetNull)
+  targetType  String?
+  targetId    String?
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  @@index([status, createdAt])
+  @@index([category])
+}
+
+model ContentArchive {
+  id            String   @id @default(cuid())
+  reportId      String?
+  targetType    String
+  targetId      String
+  authorLabel   String
+  reporterLabel String
+  adminLabel    String
+  createdAt     DateTime
+  deletedAt     DateTime @default(now())
+  expiresAt     DateTime
+  restoredAt    DateTime?
+
+  @@index([deletedAt])
+  @@index([expiresAt])
+  @@index([restoredAt])
+  @@index([targetType, targetId])
+}
+
+model AdminLog {
+  id        String   @id @default(cuid())
+  message   String
+  level     String   @default("INFO")
+  actorId   Int?
+  actor     User?    @relation(fields: [actorId], references: [id], onDelete: SetNull)
+  createdAt DateTime @default(now())
+  context   String?
+
+  @@index([createdAt])
+  @@index([actorId, createdAt])
+}
+
+model SiteSetting {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
+}
