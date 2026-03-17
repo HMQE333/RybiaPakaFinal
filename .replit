@@ -54,3 +54,7 @@ externalPort = 80
 deploymentTarget = "autoscale"
 run = ["node", "./scripts/run-prod.js"]
 build = ["bash", "scripts/deploy-build.sh"]
+
+[postMerge]
+path = "scripts/post-merge.sh"
+timeoutMs = 180000
