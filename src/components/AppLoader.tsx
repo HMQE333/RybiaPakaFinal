@@ -211,7 +211,7 @@ export default function AppLoader() {
             </g>
 
             {/* Water mask — solid bg rect hides the bobber as it sinks below y=44 */}
-            <rect x="-20" y="44" width="200" height="60" fill="var(--background)" />
+            <rect x="-20" y="44" width="200" height="300" fill="var(--background)" />
 
             {/* Water waves — drawn on top of mask, always visible */}
             <path
