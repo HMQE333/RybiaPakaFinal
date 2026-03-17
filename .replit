@@ -51,9 +51,9 @@ localPort = 5000
 externalPort = 80
 
 [deployment]
-deploymentTarget = "autoscale"
-run = ["node", "./scripts/run-prod.js"]
-build = ["bash", "scripts/deploy-build.sh"]
+deploymentTarget = "cloudrun"
+run = ["sh", "-c", "node ./scripts/run-prod.js"]
+build = ["sh", "-c", "bash scripts/deploy-build.sh"]
 
 [postMerge]
 path = "scripts/post-merge.sh"
