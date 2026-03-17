@@ -141,22 +141,18 @@ export default function AppLoader() {
       <style>{`
         @keyframes al-bob {
           0%   { transform: translateY(0px); }
-          30%  { transform: translateY(-13px); }
-          55%  { transform: translateY(-4px); }
-          75%  { transform: translateY(-10px); }
+          30%  { transform: translateY(-11px); }
+          55%  { transform: translateY(-3px); }
+          75%  { transform: translateY(-8px); }
           100% { transform: translateY(0px); }
         }
-        @keyframes al-wave {
-          0%, 100% { d: path("M0,6 C16,0 34,12 50,6 C66,0 84,12 100,6 C116,0 134,12 150,6"); }
-          50%       { d: path("M0,6 C16,12 34,0 50,6 C66,12 84,0 100,6 C116,12 134,0 150,6"); }
-        }
         @keyframes al-sink {
-          0%   { transform: translateY(0px) scaleY(1);    opacity: 1; }
-          18%  { transform: translateY(8px) scaleY(0.97); opacity: 1; }
-          42%  { transform: translateY(80px) scaleY(0.9); opacity: 0.9; }
-          58%  { transform: translateY(55px) scaleY(0.95); opacity: 0.8; }
-          80%  { transform: translateY(130px) scaleY(0.8); opacity: 0.4; }
-          100% { transform: translateY(160px) scaleY(0.6); opacity: 0; }
+          0%   { transform: translateY(0px);   opacity: 1; }
+          20%  { transform: translateY(10px);  opacity: 1; }
+          45%  { transform: translateY(90px);  opacity: 0.85; }
+          60%  { transform: translateY(65px);  opacity: 0.7; }
+          85%  { transform: translateY(150px); opacity: 0.2; }
+          100% { transform: translateY(180px); opacity: 0; }
         }
         @keyframes al-overlay-fade {
           0%   { opacity: 1; }
@@ -167,17 +163,14 @@ export default function AppLoader() {
           100% { opacity: 0; transform: translateY(10px); }
         }
 
-        .al-bob      { animation: al-bob 2.6s cubic-bezier(0.37, 0, 0.63, 1) infinite; }
-        .al-sink     { animation: al-sink 1s cubic-bezier(0.4, 0, 0.8, 0.6) forwards; }
+        .al-bob  { animation: al-bob 2.6s cubic-bezier(0.37, 0, 0.63, 1) infinite; }
+        .al-sink { animation: al-sink 1.1s cubic-bezier(0.4, 0, 0.8, 0.6) forwards; }
         .al-overlay-fade {
-          animation: al-overlay-fade 0.55s ease-in forwards;
-          animation-delay: 1.05s;
+          animation: al-overlay-fade 0.5s ease-in forwards;
+          animation-delay: 1.1s;
         }
         .al-fact-out {
-          animation: al-fact-out 0.35s ease-in forwards;
-        }
-        .al-wave path {
-          animation: al-wave 2.4s ease-in-out infinite;
+          animation: al-fact-out 0.3s ease-in forwards;
         }
       `}</style>
 
@@ -186,74 +179,61 @@ export default function AppLoader() {
           exiting ? "al-overlay-fade" : ""
         }`}
       >
-        <div className="flex flex-col items-center gap-6 select-none">
-          <div className="relative flex flex-col items-center" style={{ width: 120, height: 100 }}>
+        <div className="flex flex-col items-center gap-5 select-none">
 
-            {/* Bobber */}
-            <div
-              className={`absolute left-1/2 -translate-x-1/2 ${exiting ? "al-sink" : "al-bob"}`}
-              style={{ top: 22, transformOrigin: "center center" }}
+          {/* Single SVG: water (static) + bobber group (animated) — always perfectly centred */}
+          <svg
+            width="160"
+            height="88"
+            viewBox="0 0 160 88"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            style={{ overflow: "visible", filter: "drop-shadow(0 0 7px rgba(34,197,94,0.45))" }}
+          >
+            {/* Water — static at y=45 */}
+            <path
+              d="M2,45 C22,41 42,49 62,45 C82,41 102,49 122,45 C142,41 158,49 158,45"
+              stroke="rgba(74,222,128,0.55)"
+              strokeWidth="1.2"
+              fill="none"
+              strokeLinecap="round"
+            />
+            <path
+              d="M8,49 C28,45 48,53 68,49 C88,45 108,53 128,49 C148,45 156,52 158,49"
+              stroke="rgba(74,222,128,0.22)"
+              strokeWidth="0.8"
+              fill="none"
+              strokeLinecap="round"
+            />
+
+            {/* Bobber group — animates up/down */}
+            <g
+              className={exiting ? "al-sink" : "al-bob"}
+              style={{ transformBox: "fill-box", transformOrigin: "50% 50%" }}
             >
-              <svg
-                width="20"
-                height="64"
-                viewBox="0 0 20 64"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-                style={{ filter: "drop-shadow(0 0 8px rgba(34,197,94,0.55))" }}
-              >
-                {/* Top antenna */}
-                <line x1="10" y1="0" x2="10" y2="12" stroke="#4ade80" strokeWidth="1.5" strokeLinecap="round" />
+              {/* Antenna */}
+              <line x1="80" y1="6" x2="80" y2="27" stroke="#4ade80" strokeWidth="1.5" strokeLinecap="round" />
 
-                {/* Body outline */}
-                <ellipse cx="10" cy="28" rx="9" ry="15" fill="none" stroke="#22c55e" strokeWidth="1.5" />
+              {/* Body — green top fill (clipped above equator y=45) */}
+              <ellipse cx="80" cy="45" rx="11" ry="17" fill="rgba(34,197,94,0.2)" clipPath="url(#al-top)" />
+              {/* Body — outline */}
+              <ellipse cx="80" cy="45" rx="11" ry="17" fill="none" stroke="#22c55e" strokeWidth="1.4" />
 
-                {/* Green fill – top half */}
-                <ellipse cx="10" cy="28" rx="9" ry="15" fill="rgba(34,197,94,0.18)" clipPath="url(#al-top)" />
+              {/* Equator line */}
+              <line x1="69.3" y1="45" x2="90.7" y2="45" stroke="#22c55e" strokeWidth="0.8" strokeOpacity="0.45" />
 
-                {/* Equator divider */}
-                <line x1="1.2" y1="28" x2="18.8" y2="28" stroke="#22c55e" strokeWidth="1" strokeOpacity="0.6" />
+              {/* Bottom pin */}
+              <line x1="80" y1="62" x2="80" y2="75" stroke="#6b7280" strokeWidth="1.4" strokeLinecap="round" />
+              <circle cx="80" cy="77" r="2" fill="#6b7280" />
+            </g>
 
-                {/* Bottom hook pin */}
-                <line x1="10" y1="43" x2="10" y2="56" stroke="#6b7280" strokeWidth="1.5" strokeLinecap="round" />
-                <circle cx="10" cy="57" r="1.8" fill="#6b7280" />
-
-                <defs>
-                  <clipPath id="al-top">
-                    <rect x="0" y="0" width="20" height="28" />
-                  </clipPath>
-                </defs>
-              </svg>
-            </div>
-
-            {/* Water surface */}
-            <div className="absolute" style={{ top: 50, left: "50%", transform: "translateX(-50%)" }}>
-              <svg
-                className="al-wave"
-                width="120"
-                height="12"
-                viewBox="0 0 120 12"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-                style={{ overflow: "visible" }}
-              >
-                <path
-                  d="M0,5 C12,1 26,9 40,5 C54,1 68,9 80,5 C94,1 108,9 120,5"
-                  stroke="rgba(74,222,128,0.5)"
-                  strokeWidth="1.2"
-                  fill="none"
-                  strokeLinecap="round"
-                />
-                <path
-                  d="M0,9 C12,5 26,13 40,9 C54,5 68,13 80,9 C94,5 108,13 120,9"
-                  stroke="rgba(74,222,128,0.2)"
-                  strokeWidth="0.8"
-                  fill="none"
-                  strokeLinecap="round"
-                />
-              </svg>
-            </div>
-          </div>
+            <defs>
+              {/* clip: everything above the water line (y < 45) */}
+              <clipPath id="al-top">
+                <rect x="0" y="0" width="160" height="45" />
+              </clipPath>
+            </defs>
+          </svg>
 
           <p
             className={`text-[11px] text-foreground-2 text-center max-w-[260px] leading-relaxed ${
