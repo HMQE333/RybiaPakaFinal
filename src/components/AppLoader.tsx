@@ -146,14 +146,6 @@ export default function AppLoader() {
           75%  { transform: translateY(-10px); }
           100% { transform: translateY(0px); }
         }
-        @keyframes al-ripple-idle {
-          0%   { transform: translateX(-50%) scale(0.3); opacity: 0.6; }
-          100% { transform: translateX(-50%) scale(1);   opacity: 0; }
-        }
-        @keyframes al-ripple-idle2 {
-          0%   { transform: translateX(-50%) scale(0.2); opacity: 0.45; }
-          100% { transform: translateX(-50%) scale(0.85); opacity: 0; }
-        }
         @keyframes al-wave {
           0%, 100% { d: path("M0,6 C16,0 34,12 50,6 C66,0 84,12 100,6 C116,0 134,12 150,6"); }
           50%       { d: path("M0,6 C16,12 34,0 50,6 C66,12 84,0 100,6 C116,12 134,0 150,6"); }
@@ -166,10 +158,6 @@ export default function AppLoader() {
           80%  { transform: translateY(130px) scaleY(0.8); opacity: 0.4; }
           100% { transform: translateY(160px) scaleY(0.6); opacity: 0; }
         }
-        @keyframes al-ripple-exit {
-          0%   { transform: translate(-50%,-50%) scale(0);  opacity: 0.7; }
-          100% { transform: translate(-50%,-50%) scale(45); opacity: 0; }
-        }
         @keyframes al-overlay-fade {
           0%   { opacity: 1; }
           100% { opacity: 0; }
@@ -181,17 +169,6 @@ export default function AppLoader() {
 
         .al-bob      { animation: al-bob 2.6s cubic-bezier(0.37, 0, 0.63, 1) infinite; }
         .al-sink     { animation: al-sink 1s cubic-bezier(0.4, 0, 0.8, 0.6) forwards; }
-
-        .al-ripple-idle {
-          animation: al-ripple-idle 2.8s ease-out infinite;
-        }
-        .al-ripple-idle2 {
-          animation: al-ripple-idle2 2.8s ease-out 1.4s infinite;
-        }
-        .al-ripple-exit {
-          animation: al-ripple-exit 1.3s cubic-bezier(0.1, 0, 0.4, 1) forwards;
-          animation-delay: 0.55s;
-        }
         .al-overlay-fade {
           animation: al-overlay-fade 0.55s ease-in forwards;
           animation-delay: 1.05s;
@@ -209,35 +186,8 @@ export default function AppLoader() {
           exiting ? "al-overlay-fade" : ""
         }`}
       >
-        {exiting && (
-          <div
-            className="al-ripple-exit pointer-events-none absolute rounded-full"
-            style={{
-              left: "50%",
-              top: "44%",
-              width: 72,
-              height: 72,
-              background:
-                "radial-gradient(circle, rgba(74,222,128,0.35) 0%, rgba(34,197,94,0.15) 55%, transparent 80%)",
-            }}
-          />
-        )}
-
         <div className="flex flex-col items-center gap-6 select-none">
           <div className="relative flex flex-col items-center" style={{ width: 120, height: 100 }}>
-            {/* Idle water ripple rings */}
-            {!exiting && (
-              <>
-                <div
-                  className="al-ripple-idle absolute rounded-full border border-green-400/25"
-                  style={{ top: 44, left: "50%", width: 60, height: 12 }}
-                />
-                <div
-                  className="al-ripple-idle2 absolute rounded-full border border-green-400/15"
-                  style={{ top: 44, left: "50%", width: 60, height: 12 }}
-                />
-              </>
-            )}
 
             {/* Bobber */}
             <div
