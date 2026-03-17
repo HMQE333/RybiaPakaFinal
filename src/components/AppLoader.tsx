@@ -19,7 +19,7 @@ const FACTS = [
 
 const INITIAL_LOADER_TIMEOUT_MS = 5000;
 const MIN_VISIBLE_MS = 1000;
-const FADE_OUT_MS = 1600;
+const FADE_OUT_MS = 1500;
 const FONT_READY_TIMEOUT_MS = 3000;
 const IMAGE_READY_TIMEOUT_MS = 5000;
 const CRITICAL_IMAGE_SELECTOR =
@@ -147,12 +147,11 @@ export default function AppLoader() {
           100% { transform: translateY(0px); }
         }
         @keyframes al-sink {
-          0%   { transform: translateY(0px);   opacity: 1; }
-          20%  { transform: translateY(10px);  opacity: 1; }
-          45%  { transform: translateY(90px);  opacity: 0.85; }
-          60%  { transform: translateY(65px);  opacity: 0.7; }
-          85%  { transform: translateY(150px); opacity: 0.2; }
-          100% { transform: translateY(180px); opacity: 0; }
+          0%   { transform: translateY(0px); }
+          20%  { transform: translateY(4px); }
+          55%  { transform: translateY(20px); }
+          80%  { transform: translateY(44px); }
+          100% { transform: translateY(44px); }
         }
         @keyframes al-overlay-fade {
           0%   { opacity: 1; }
@@ -164,10 +163,10 @@ export default function AppLoader() {
         }
 
         .al-bob  { animation: al-bob 2.6s cubic-bezier(0.37, 0, 0.63, 1) infinite; }
-        .al-sink { animation: al-sink 1.1s cubic-bezier(0.4, 0, 0.8, 0.6) forwards; }
+        .al-sink { animation: al-sink 0.85s cubic-bezier(0.4, 0, 0.55, 1) forwards; }
         .al-overlay-fade {
-          animation: al-overlay-fade 0.5s ease-in forwards;
-          animation-delay: 1.1s;
+          animation: al-overlay-fade 0.65s ease-in forwards;
+          animation-delay: 0.8s;
         }
         .al-fact-out {
           animation: al-fact-out 0.3s ease-in forwards;
@@ -188,28 +187,13 @@ export default function AppLoader() {
             viewBox="0 0 160 88"
             fill="none"
             xmlns="http://www.w3.org/2000/svg"
-            style={{ overflow: "visible", filter: "drop-shadow(0 0 7px rgba(34,197,94,0.45))" }}
+            style={{ overflow: "visible" }}
           >
-            {/* Water — static at y=45 */}
-            <path
-              d="M2,45 C22,41 42,49 62,45 C82,41 102,49 122,45 C142,41 158,49 158,45"
-              stroke="rgba(74,222,128,0.55)"
-              strokeWidth="1.2"
-              fill="none"
-              strokeLinecap="round"
-            />
-            <path
-              d="M8,49 C28,45 48,53 68,49 C88,45 108,53 128,49 C148,45 156,52 158,49"
-              stroke="rgba(74,222,128,0.22)"
-              strokeWidth="0.8"
-              fill="none"
-              strokeLinecap="round"
-            />
-
-            {/* Bobber group — animates up/down */}
+            {/* Bobber group — bottom layer, animates up/down */}
             <g
               className={exiting ? "al-sink" : "al-bob"}
               style={{ transformBox: "fill-box", transformOrigin: "50% 50%" }}
+              filter="url(#al-glow)"
             >
               {/* Antenna */}
               <line x1="80" y1="6" x2="80" y2="27" stroke="#4ade80" strokeWidth="1.5" strokeLinecap="round" />
@@ -227,11 +211,32 @@ export default function AppLoader() {
               <circle cx="80" cy="77" r="2" fill="#6b7280" />
             </g>
 
+            {/* Water mask — solid bg rect hides the bobber as it sinks below y=44 */}
+            <rect x="-20" y="44" width="200" height="60" fill="var(--background)" />
+
+            {/* Water waves — drawn on top of mask, always visible */}
+            <path
+              d="M2,45 C22,41 42,49 62,45 C82,41 102,49 122,45 C142,41 158,49 158,45"
+              stroke="rgba(74,222,128,0.55)"
+              strokeWidth="1.2"
+              fill="none"
+              strokeLinecap="round"
+            />
+            <path
+              d="M8,49 C28,45 48,53 68,49 C88,45 108,53 128,49 C148,45 156,52 158,49"
+              stroke="rgba(74,222,128,0.22)"
+              strokeWidth="0.8"
+              fill="none"
+              strokeLinecap="round"
+            />
+
             <defs>
-              {/* clip: everything above the water line (y < 45) */}
               <clipPath id="al-top">
                 <rect x="0" y="0" width="160" height="45" />
               </clipPath>
+              <filter id="al-glow" x="-50%" y="-50%" width="200%" height="200%">
+                <feDropShadow dx="0" dy="0" stdDeviation="4" floodColor="rgba(34,197,94,0.55)" />
+              </filter>
             </defs>
           </svg>
 
