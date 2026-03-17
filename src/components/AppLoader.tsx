@@ -178,13 +178,13 @@ export default function AppLoader() {
           exiting ? "al-overlay-fade" : ""
         }`}
       >
-        <div className="flex flex-col items-center gap-2 select-none">
+        <div className="flex flex-col items-center gap-0 select-none">
 
           {/* Single SVG: water (static) + bobber group (animated) — always perfectly centred */}
           <svg
             width="160"
-            height="88"
-            viewBox="0 0 160 88"
+            height="52"
+            viewBox="0 0 160 52"
             fill="none"
             xmlns="http://www.w3.org/2000/svg"
             style={{ overflow: "visible" }}
