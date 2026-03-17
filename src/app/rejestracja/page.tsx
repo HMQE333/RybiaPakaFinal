@@ -216,7 +216,6 @@ export default function RegisterPage() {
 
         <div className="w-full flex items-center justify-center gap-[10px]">
           <OAuthButton icon="google" onClick={() => startSocial("google")} />
-          <OAuthButton icon="facebook" onClick={() => startSocial("facebook")} />
           <OAuthButton icon="discord" onClick={() => startSocial("discord")} />
         </div>
       </div>
