@@ -152,7 +152,7 @@ export default function LogInPage() {
 
       writeAuthHint(true);
       emitAuthEvent("login");
-      router.push(safeNext);
+      window.location.href = safeNext;
     } finally {
       isSubmittingRef.current = false;
       setIsSubmitting(false);
@@ -166,7 +166,7 @@ export default function LogInPage() {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "include",
-      body: JSON.stringify({ provider }),
+      body: JSON.stringify({ provider, callbackURL: "/" }),
     }).catch(() => null);
 
     const data = await res?.json().catch(() => null);

@@ -46,6 +46,14 @@ if (process.env.DISCORD_CLIENT_ID && process.env.DISCORD_CLIENT_SECRET) {
   };
 }
 
+const trustedOrigins = [
+  baseURL,
+  process.env.NEXT_PUBLIC_SITE_URL,
+  process.env.NEXTAUTH_URL,
+]
+  .filter((v): v is string => Boolean(v))
+  .map((v) => v.replace(/\/$/, ""));
+
 export const auth = betterAuth({
   database: prismaAdapter(prisma, {
     provider:
@@ -58,7 +66,11 @@ export const auth = betterAuth({
     database: {
       generateId: "serial",
     },
+    crossSubDomainCookies: {
+      enabled: false,
+    },
   },
+  trustedOrigins,
   logger: { level: "debug" },
   onAPIError: {
     onError(error) {
