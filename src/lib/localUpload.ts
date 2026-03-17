@@ -13,6 +13,7 @@ const ALLOWED_MIME: Record<string, string> = {
 
 const MAX_GALLERY_BYTES = 8 * 1024 * 1024;
 const MAX_AVATAR_BYTES = 2 * 1024 * 1024;
+const MAX_BANNER_BYTES = 5 * 1024 * 1024;
 
 export async function saveGalleryImage(file: File): Promise<string> {
   const ext = ALLOWED_MIME[file.type];
@@ -44,4 +45,20 @@ export async function saveAvatarImage(file: File): Promise<string> {
   await writeFile(filepath, buffer);
 
   return `/uploads/avatars/${filename}`;
+}
+
+export async function saveBannerImage(file: File): Promise<string> {
+  const ext = ALLOWED_MIME[file.type];
+  if (!ext) throw new Error("UNSUPPORTED_FILE_TYPE");
+  if (file.size > MAX_BANNER_BYTES) throw new Error("FILE_TOO_LARGE");
+
+  const dir = path.join(UPLOADS_ROOT, "banners");
+  await mkdir(dir, { recursive: true });
+
+  const filename = `${randomUUID()}.${ext}`;
+  const filepath = path.join(dir, filename);
+  const buffer = Buffer.from(await file.arrayBuffer());
+  await writeFile(filepath, buffer);
+
+  return `/uploads/banners/${filename}`;
 }

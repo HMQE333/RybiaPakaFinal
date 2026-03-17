@@ -166,7 +166,14 @@ export default function LogInPage() {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "include",
-      body: JSON.stringify({ provider, callbackURL: "/" }),
+      body: JSON.stringify({
+          provider,
+          callbackURL: (() => {
+            const p = new URLSearchParams(window.location.search);
+            const n = p.get("next") ?? p.get("redirect") ?? "/";
+            return n.startsWith("/") && !n.startsWith("//") ? n : "/";
+          })(),
+        }),
     }).catch(() => null);
 
     const data = await res?.json().catch(() => null);

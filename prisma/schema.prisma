@@ -36,13 +36,16 @@ model User {
   moderationNoticeSeenAt DateTime?
 
   // Profile additions
-  username  String?  @unique
-  avatarUrl String?
-  bio       String?
-  age       Int?
-  joinedAt  DateTime @default(now())
-  rankId    String?
-  regionId  String?
+  username              String?   @unique
+  avatarUrl             String?
+  bannerUrl             String?
+  bio                   String?
+  pronouns              String?
+  age                   Int?
+  joinedAt              DateTime  @default(now())
+  rankId                String?
+  regionId              String?
+  onboardingCompletedAt DateTime?
 
   // relations
   rank           Rank?               @relation(fields: [rankId], references: [id], onUpdate: Cascade, onDelete: SetNull)

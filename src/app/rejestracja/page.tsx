@@ -126,7 +126,7 @@ export default function RegisterPage() {
         return;
       }
 
-      router.push("/profil/ustawienia?onboarding=1");
+      router.push("/onboarding");
     } finally {
       isSubmittingRef.current = false;
       setIsSubmitting(false);
@@ -140,7 +140,7 @@ export default function RegisterPage() {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "include",
-      body: JSON.stringify({ provider }),
+      body: JSON.stringify({ provider, callbackURL: "/onboarding" }),
     }).catch(() => null);
 
     const data = await res?.json().catch(() => null);

@@ -36,6 +36,7 @@ Set in Replit Secrets / Env Vars:
 - **Forum**: Permanent threaded posts with likes, comments (replies), board categories, admin archive/delete
 - **Galeria**: Photo gallery with categories, likes, comments; images saved to `public/uploads/galeria/`; avatars to `public/uploads/avatars/`
 - **Auth**: Email/password + Google/Discord/Facebook OAuth via better-auth
+- **Onboarding**: Post-registration profile setup wizard at `/onboarding` — nick, avatar, banner, bio, region, fishing methods with live preview
 
 ## Database Models (Prisma → PostgreSQL)
 - `User`, `Account`, `Session`, `Verification` — auth
@@ -45,11 +46,21 @@ Set in Replit Secrets / Env Vars:
 - `Message` — direct messages
 - Plus: FriendRequest, Friendship, Notification, Report, ContentArchive, AdminLog, SiteSetting, UserNotificationSetting, Rank, Region, FishingMethod, UserFishingMethod
 
+## Onboarding Flow
+- After registration (email or OAuth), users are redirected to `/onboarding`
+- Multi-step wizard: Step 1 (Nick + Display Name + Pronouns), Step 2 (Avatar), Step 3 (Banner), Step 4 (Bio + Region + Methods)
+- Live profile preview on the right side (desktop)
+- Nick uniqueness check via GET `/api/profile/nick-check?nick=xxx`
+- Completion saved to `User.onboardingCompletedAt`; completed users are redirected to home
+- Email reg: redirect to `/onboarding` after successful registration
+- OAuth reg (from `/rejestracja`): `callbackURL: "/onboarding"` passed to better-auth
+
 ## File Upload
-- `src/lib/localUpload.ts` — saves gallery images and avatars locally
+- `src/lib/localUpload.ts` — saves gallery images, avatars, and banners locally
 - Gallery images: `public/uploads/galeria/` → URL `/uploads/galeria/<uuid>.<ext>`
 - Avatars: `public/uploads/avatars/` → URL `/uploads/avatars/<uuid>.<ext>`
-- Max sizes: gallery 8MB, avatar 2MB; allowed: jpg, png, webp
+- Banners: `public/uploads/banners/` → URL `/uploads/banners/<uuid>.<ext>`
+- Max sizes: gallery 8MB, avatar 2MB, banner 5MB; allowed: jpg, png, webp
 - **Note**: Files in `public/uploads/` do NOT survive container restarts (Replit ephemeral FS)
 
 ## Migration Notes (Vercel → Replit)
