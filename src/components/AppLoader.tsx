@@ -230,11 +230,11 @@ export default function AppLoader() {
               <>
                 <div
                   className="al-ripple-idle absolute rounded-full border border-green-400/25"
-                  style={{ top: 54, left: "50%", width: 60, height: 12 }}
+                  style={{ top: 44, left: "50%", width: 60, height: 12 }}
                 />
                 <div
                   className="al-ripple-idle2 absolute rounded-full border border-green-400/15"
-                  style={{ top: 54, left: "50%", width: 60, height: 12 }}
+                  style={{ top: 44, left: "50%", width: 60, height: 12 }}
                 />
               </>
             )}
@@ -242,7 +242,7 @@ export default function AppLoader() {
             {/* Bobber */}
             <div
               className={`absolute left-1/2 -translate-x-1/2 ${exiting ? "al-sink" : "al-bob"}`}
-              style={{ top: 4, transformOrigin: "center center" }}
+              style={{ top: 22, transformOrigin: "center center" }}
             >
               <svg
                 width="20"
