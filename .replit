@@ -15,3 +15,31 @@ NEXTAUTH_URL = "https://6f8050f6-1fc0-4c4d-8e0e-30be532bb2bf-00-2pyxv8nnrqvhs.sp
 PRISMA_MIGRATE = "1"
 PRISMA_GENERATE = "1"
 PRISMA_RESTORE = "0"
+
+[workflows]
+runButton = "Project"
+
+[[workflows.workflow]]
+name = "Project"
+mode = "parallel"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Start application"
+
+[[workflows.workflow]]
+name = "Start application"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "pnpm run dev"
+waitForPort = 5000
+
+[workflows.workflow.metadata]
+outputType = "webview"
+
+[[ports]]
+localPort = 5000
+externalPort = 80
