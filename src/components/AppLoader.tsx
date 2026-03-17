@@ -223,18 +223,18 @@ export default function AppLoader() {
           />
         )}
 
-        <div className="flex flex-col items-center gap-8 select-none">
-          <div className="relative flex flex-col items-center" style={{ width: 110, height: 210 }}>
+        <div className="flex flex-col items-center gap-6 select-none">
+          <div className="relative flex flex-col items-center" style={{ width: 120, height: 100 }}>
             {/* Idle water ripple rings */}
             {!exiting && (
               <>
                 <div
-                  className="al-ripple-idle absolute rounded-full border border-green-400/30"
-                  style={{ top: 84, left: "50%", width: 90, height: 18 }}
+                  className="al-ripple-idle absolute rounded-full border border-green-400/25"
+                  style={{ top: 54, left: "50%", width: 60, height: 12 }}
                 />
                 <div
-                  className="al-ripple-idle2 absolute rounded-full border border-green-400/20"
-                  style={{ top: 84, left: "50%", width: 90, height: 18 }}
+                  className="al-ripple-idle2 absolute rounded-full border border-green-400/15"
+                  style={{ top: 54, left: "50%", width: 60, height: 12 }}
                 />
               </>
             )}
@@ -242,91 +242,62 @@ export default function AppLoader() {
             {/* Bobber */}
             <div
               className={`absolute left-1/2 -translate-x-1/2 ${exiting ? "al-sink" : "al-bob"}`}
-              style={{ top: 16, transformOrigin: "center bottom" }}
+              style={{ top: 4, transformOrigin: "center center" }}
             >
               <svg
-                width="52"
-                height="148"
-                viewBox="0 0 52 148"
+                width="20"
+                height="64"
+                viewBox="0 0 20 64"
                 fill="none"
                 xmlns="http://www.w3.org/2000/svg"
-                style={{ filter: "drop-shadow(0 4px 18px rgba(34,197,94,0.38)) drop-shadow(0 1px 4px rgba(0,0,0,0.45))" }}
+                style={{ filter: "drop-shadow(0 0 8px rgba(34,197,94,0.55))" }}
               >
-                {/* Top stick */}
-                <rect x="23" y="0" width="6" height="26" rx="3" fill="url(#stickGrad)" />
+                {/* Top antenna */}
+                <line x1="10" y1="0" x2="10" y2="12" stroke="#4ade80" strokeWidth="1.5" strokeLinecap="round" />
 
-                {/* Body – green top half */}
-                <ellipse cx="26" cy="68" rx="22" ry="34" fill="url(#greenGrad)" clipPath="url(#aboveWater)" />
+                {/* Body outline */}
+                <ellipse cx="10" cy="28" rx="9" ry="15" fill="none" stroke="#22c55e" strokeWidth="1.5" />
 
-                {/* Body – white bottom half */}
-                <ellipse cx="26" cy="68" rx="22" ry="34" fill="url(#whiteGrad)" clipPath="url(#belowWater)" />
+                {/* Green fill – top half */}
+                <ellipse cx="10" cy="28" rx="9" ry="15" fill="rgba(34,197,94,0.18)" clipPath="url(#al-top)" />
 
-                {/* Thin equator ring */}
-                <ellipse cx="26" cy="68" rx="22" ry="2.5" fill="rgba(0,0,0,0.18)" />
+                {/* Equator divider */}
+                <line x1="1.2" y1="28" x2="18.8" y2="28" stroke="#22c55e" strokeWidth="1" strokeOpacity="0.6" />
 
-                {/* Specular highlight */}
-                <ellipse cx="17" cy="52" rx="5" ry="10" fill="white" opacity="0.22" />
-
-                {/* Bottom stick */}
-                <rect x="23" y="100" width="6" height="22" rx="3" fill="url(#bottomStickGrad)" />
-
-                {/* Bottom tip cap */}
-                <ellipse cx="26" cy="122" rx="5" ry="3" fill="#6b7280" opacity="0.7" />
+                {/* Bottom hook pin */}
+                <line x1="10" y1="43" x2="10" y2="56" stroke="#6b7280" strokeWidth="1.5" strokeLinecap="round" />
+                <circle cx="10" cy="57" r="1.8" fill="#6b7280" />
 
                 <defs>
-                  <clipPath id="aboveWater">
-                    <rect x="0" y="0" width="52" height="68" />
+                  <clipPath id="al-top">
+                    <rect x="0" y="0" width="20" height="28" />
                   </clipPath>
-                  <clipPath id="belowWater">
-                    <rect x="0" y="68" width="52" height="40" />
-                  </clipPath>
-
-                  <linearGradient id="stickGrad" x1="26" y1="0" x2="26" y2="26" gradientUnits="userSpaceOnUse">
-                    <stop offset="0%" stopColor="#4ade80" />
-                    <stop offset="100%" stopColor="#16a34a" />
-                  </linearGradient>
-
-                  <linearGradient id="greenGrad" x1="4" y1="34" x2="48" y2="100" gradientUnits="userSpaceOnUse">
-                    <stop offset="0%" stopColor="#86efac" />
-                    <stop offset="40%" stopColor="#22c55e" />
-                    <stop offset="100%" stopColor="#14532d" />
-                  </linearGradient>
-
-                  <linearGradient id="whiteGrad" x1="4" y1="68" x2="48" y2="108" gradientUnits="userSpaceOnUse">
-                    <stop offset="0%" stopColor="#f0fdf4" />
-                    <stop offset="100%" stopColor="#9ca3af" />
-                  </linearGradient>
-
-                  <linearGradient id="bottomStickGrad" x1="26" y1="100" x2="26" y2="122" gradientUnits="userSpaceOnUse">
-                    <stop offset="0%" stopColor="#d1d5db" />
-                    <stop offset="100%" stopColor="#6b7280" />
-                  </linearGradient>
                 </defs>
               </svg>
             </div>
 
-            {/* Water surface waves */}
-            <div className="absolute" style={{ top: 82, left: "50%", transform: "translateX(-50%)" }}>
+            {/* Water surface */}
+            <div className="absolute" style={{ top: 50, left: "50%", transform: "translateX(-50%)" }}>
               <svg
                 className="al-wave"
-                width="150"
-                height="16"
-                viewBox="0 0 150 16"
+                width="120"
+                height="12"
+                viewBox="0 0 120 12"
                 fill="none"
                 xmlns="http://www.w3.org/2000/svg"
                 style={{ overflow: "visible" }}
               >
                 <path
-                  d="M0,6 C16,0 34,12 50,6 C66,0 84,12 100,6 C116,0 134,12 150,6"
-                  stroke="rgba(74,222,128,0.45)"
-                  strokeWidth="1.8"
+                  d="M0,5 C12,1 26,9 40,5 C54,1 68,9 80,5 C94,1 108,9 120,5"
+                  stroke="rgba(74,222,128,0.5)"
+                  strokeWidth="1.2"
                   fill="none"
                   strokeLinecap="round"
                 />
                 <path
-                  d="M0,11 C16,5 34,17 50,11 C66,5 84,17 100,11 C116,5 134,17 150,11"
-                  stroke="rgba(74,222,128,0.22)"
-                  strokeWidth="1.2"
+                  d="M0,9 C12,5 26,13 40,9 C54,5 68,13 80,9 C94,5 108,13 120,9"
+                  stroke="rgba(74,222,128,0.2)"
+                  strokeWidth="0.8"
                   fill="none"
                   strokeLinecap="round"
                 />
