@@ -178,7 +178,7 @@ export default function AppLoader() {
           exiting ? "al-overlay-fade" : ""
         }`}
       >
-        <div className="flex flex-col items-center gap-5 select-none">
+        <div className="flex flex-col items-center gap-2 select-none">
 
           {/* Single SVG: water (static) + bobber group (animated) — always perfectly centred */}
           <svg
@@ -245,7 +245,7 @@ export default function AppLoader() {
             <span className="text-[10px] font-semibold uppercase tracking-widest text-accent/70">
               Ciekawostka
             </span>
-            <p className="text-[13px] text-foreground-2 text-center max-w-[280px] leading-relaxed">
+            <p className="text-[15px] text-foreground-2 text-center max-w-[300px] leading-relaxed">
               {FACTS[factIndex]}
             </p>
           </div>
