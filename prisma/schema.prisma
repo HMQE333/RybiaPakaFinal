@@ -42,6 +42,7 @@ model User {
   bio                   String?
   pronouns              String?
   age                   Int?
+  ageRange              String?
   joinedAt              DateTime  @default(now())
   rankId                String?
   regionId              String?

@@ -5,6 +5,15 @@ import { saveAvatarImage, saveBannerImage } from "@/lib/localUpload";
 
 const NICK_REGEX = /^[a-zA-Z0-9_\-]{3,20}$/;
 
+const PRESET_BANNER_GRADIENTS: Record<string, string> = {
+  "gleboka-woda": "linear-gradient(135deg, #001a3a 0%, #003a7a 50%, #0055aa 100%)",
+  "zielony-las": "linear-gradient(135deg, #002200 0%, #004d00 50%, #007a00 100%)",
+  "zachod-slonca": "linear-gradient(135deg, #4a0800 0%, #aa2200 40%, #ff6600 100%)",
+  "mgla-poranna": "linear-gradient(135deg, #0d0d1a 0%, #1a2040 50%, #2d3a6e 100%)",
+  "torfowisko": "linear-gradient(135deg, #1a0d00 0%, #3d2a00 50%, #5c4020 100%)",
+  "rzeka": "linear-gradient(135deg, #001a1a 0%, #004d50 50%, #007a7d 100%)",
+};
+
 export async function POST(req: NextRequest) {
   const session = await auth.api.getSession({ headers: req.headers });
   if (!session?.user) {
@@ -19,32 +28,26 @@ export async function POST(req: NextRequest) {
   const contentType = req.headers.get("content-type") ?? "";
 
   let nick = "";
-  let name = "";
   let pronouns = "";
   let bio = "";
-  let age = "";
-  let regionId = "";
+  let ageRange = "";
   let methods: string[] = [];
   let avatarFile: File | null = null;
   let bannerFile: File | null = null;
   let avatarUrl: string | null = null;
   let bannerUrl: string | null = null;
+  let bannerPresetId = "";
 
   if (contentType.includes("multipart/form-data")) {
     const form = await req.formData();
     nick = String(form.get("nick") ?? "").trim();
-    name = String(form.get("name") ?? "").trim();
     pronouns = String(form.get("pronouns") ?? "").trim();
     bio = String(form.get("bio") ?? "").trim();
-    age = String(form.get("age") ?? "").trim();
-    regionId = String(form.get("regionId") ?? "").trim();
+    ageRange = String(form.get("ageRange") ?? "").trim();
+    bannerPresetId = String(form.get("bannerPresetId") ?? "").trim();
     const methodsRaw = form.get("methods");
     if (typeof methodsRaw === "string" && methodsRaw) {
-      try {
-        methods = JSON.parse(methodsRaw);
-      } catch {
-        methods = [];
-      }
+      try { methods = JSON.parse(methodsRaw); } catch { methods = []; }
     }
     const av = form.get("avatarFile");
     if (av instanceof File && av.size > 0) avatarFile = av;
@@ -57,11 +60,10 @@ export async function POST(req: NextRequest) {
   } else {
     const body = await req.json().catch(() => ({}));
     nick = String(body.nick ?? "").trim();
-    name = String(body.name ?? "").trim();
     pronouns = String(body.pronouns ?? "").trim();
     bio = String(body.bio ?? "").trim();
-    age = String(body.age ?? "").trim();
-    regionId = String(body.regionId ?? "").trim();
+    ageRange = String(body.ageRange ?? "").trim();
+    bannerPresetId = String(body.bannerPresetId ?? "").trim();
     methods = Array.isArray(body.methods) ? body.methods : [];
     avatarUrl = body.avatarUrl ?? null;
     bannerUrl = body.bannerUrl ?? null;
@@ -87,32 +89,23 @@ export async function POST(req: NextRequest) {
   }
 
   if (avatarFile) {
-    try {
-      avatarUrl = await saveAvatarImage(avatarFile);
-    } catch {
-      avatarUrl = null;
-    }
+    try { avatarUrl = await saveAvatarImage(avatarFile); } catch { avatarUrl = null; }
   }
 
   if (bannerFile) {
-    try {
-      bannerUrl = await saveBannerImage(bannerFile);
-    } catch {
-      bannerUrl = null;
-    }
+    try { bannerUrl = await saveBannerImage(bannerFile); } catch { bannerUrl = null; }
+  } else if (bannerPresetId && PRESET_BANNER_GRADIENTS[bannerPresetId]) {
+    bannerUrl = `preset:${bannerPresetId}`;
   }
-
-  const ageNum = age ? parseInt(age, 10) : null;
 
   await prisma.user.update({
     where: { id: userId },
     data: {
       nick,
-      name: name || nick,
+      name: nick,
       pronouns: pronouns || null,
       bio: bio || null,
-      age: ageNum && !isNaN(ageNum) ? ageNum : null,
-      regionId: regionId || null,
+      ageRange: ageRange || null,
       ...(avatarUrl ? { avatarUrl } : {}),
       ...(bannerUrl !== undefined ? { bannerUrl: bannerUrl || null } : {}),
       onboardingCompletedAt: new Date(),

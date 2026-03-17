@@ -2,7 +2,6 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import prisma from "@/lib/prisma";
 import { getSessionSafe } from "@/lib/auth";
-import { getVoivodeshipLabel, voivodeshipKeys } from "@/const";
 import OnboardingWizard from "./OnboardingWizard";
 
 async function getOnboardingData() {
@@ -20,13 +19,11 @@ async function getOnboardingData() {
       select: {
         id: true,
         nick: true,
-        name: true,
         pronouns: true,
         bio: true,
-        age: true,
+        ageRange: true,
         avatarUrl: true,
         bannerUrl: true,
-        regionId: true,
         onboardingCompletedAt: true,
         methods: { include: { method: true } },
       },
@@ -36,19 +33,6 @@ async function getOnboardingData() {
   } catch {
     return null;
   }
-}
-
-async function ensureRegions() {
-  const existing = await prisma.region.findMany({ orderBy: { name: "asc" } });
-  const existingNames = new Set(existing.map((r) => r.name));
-  const missing = voivodeshipKeys.filter((n) => !existingNames.has(n));
-  if (missing.length === 0) return existing;
-
-  await prisma.region.createMany({
-    data: missing.map((name) => ({ name })),
-    skipDuplicates: true,
-  });
-  return prisma.region.findMany({ orderBy: { name: "asc" } });
 }
 
 export default async function OnboardingPage() {
@@ -62,32 +46,19 @@ export default async function OnboardingPage() {
     redirect("/");
   }
 
-  const [regions, methods] = await Promise.all([
-    ensureRegions(),
-    prisma.fishingMethod.findMany({ orderBy: { name: "asc" } }),
-  ]);
-
-  const regionOptions = regions
-    .map((r) => ({
-      id: r.id,
-      name: getVoivodeshipLabel(r.name) ?? r.name,
-    }))
-    .sort((a, b) => a.name.localeCompare(b.name, "pl-PL"));
+  const methods = await prisma.fishingMethod.findMany({ orderBy: { name: "asc" } });
 
   return (
     <OnboardingWizard
       user={{
         nick: user.nick,
-        name: user.name,
         pronouns: user.pronouns,
         bio: user.bio,
-        age: user.age,
+        ageRange: user.ageRange,
         avatarUrl: user.avatarUrl,
         bannerUrl: user.bannerUrl,
-        regionId: user.regionId,
         methods: user.methods.map((m) => m.method.id),
       }}
-      regions={regionOptions}
       methods={methods.map((m) => ({ id: m.id, name: m.name }))}
     />
   );
