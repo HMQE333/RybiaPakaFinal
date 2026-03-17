@@ -178,7 +178,7 @@ export default function AppLoader() {
           exiting ? "al-overlay-fade" : ""
         }`}
       >
-        <div className="flex flex-col items-center gap-0 select-none">
+        <div className="flex flex-col items-center gap-3 select-none">
 
           {/* Single SVG: water (static) + bobber group (animated) — always perfectly centred */}
           <svg
