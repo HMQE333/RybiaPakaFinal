@@ -47,4 +47,4 @@ externalPort = 80
 [deployment]
 deploymentTarget = "autoscale"
 run = ["node", "./scripts/run-prod.js"]
-build = ["bash", "-c", "npm install -g pnpm && pnpm install && pnpm run build"]
+build = ["bash", "scripts/deploy-build.sh"]
