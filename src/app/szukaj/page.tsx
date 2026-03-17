@@ -3,8 +3,6 @@ import { Suspense } from "react";
 import Footer from "@/components/Footer";
 import prisma from "@/lib/prisma";
 import { getVoivodeshipLabel, voivodeshipKeys } from "@/const";
-import { isDataServiceConfigured } from "@/lib/dataClient";
-
 import SearchClient from "./SearchClient";
 
 export const dynamic = "force-dynamic";
@@ -20,9 +18,6 @@ type MethodOption = {
 };
 
 async function ensureRegions() {
-  if (!isDataServiceConfigured()) {
-    return [];
-  }
   const existing = await prisma.region.findMany({ orderBy: { name: "asc" } });
   const existingNames = new Set(existing.map((region) => region.name));
   const missing = voivodeshipKeys.filter((name) => !existingNames.has(name));

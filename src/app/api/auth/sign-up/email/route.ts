@@ -26,7 +26,7 @@ type ExistingUser = {
 
 async function findUserByEmail(email: string): Promise<ExistingUser | null> {
   const normalized = email.trim().toLowerCase();
-  const user = await prisma.user.findFirst({
+  return prisma.user.findFirst({
     where: { email: normalized },
     select: {
       id: true,
@@ -37,19 +37,6 @@ async function findUserByEmail(email: string): Promise<ExistingUser | null> {
       passwordHash: true,
     },
   });
-
-  if (user) {
-    return user;
-  }
-
-  const rows = await prisma.$queryRaw<ExistingUser[]>`
-    SELECT id, email, name, username, nick, passwordHash
-    FROM User
-    WHERE lower(email) = ${normalized}
-    LIMIT 1
-  `;
-
-  return rows[0] ?? null;
 }
 
 export async function POST(req: NextRequest) {

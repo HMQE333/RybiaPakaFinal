@@ -6,8 +6,6 @@ import Page from "@/components/Page";
 import prisma from "@/lib/prisma";
 import { getSessionSafe } from "@/lib/auth";
 import { getVoivodeshipLabel, voivodeshipKeys } from "@/const";
-import { isDataServiceConfigured } from "@/lib/dataClient";
-
 import ProfileSettingsForm from "./ProfileSettingsForm";
 
 async function getSessionUser() {
@@ -71,9 +69,6 @@ async function getSessionUser() {
 }
 
 async function ensureRegions() {
-  if (!isDataServiceConfigured()) {
-    return [];
-  }
   const existing = await prisma.region.findMany({ orderBy: { name: "asc" } });
   const existingNames = new Set(existing.map((region) => region.name));
   const missingNames = voivodeshipKeys.filter(

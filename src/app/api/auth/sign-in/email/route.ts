@@ -19,22 +19,10 @@ type UserLookup = {
 };
 
 async function findUserByEmail(normalized: string): Promise<UserLookup | null> {
-  let user = await prisma.user.findFirst({
+  return prisma.user.findFirst({
     where: { email: normalized },
     select: { id: true, passwordHash: true },
   });
-
-  if (!user) {
-    const rows = await prisma.$queryRaw<UserLookup[]>`
-      SELECT id, passwordHash
-      FROM User
-      WHERE lower(email) = ${normalized}
-      LIMIT 1
-    `;
-    user = rows[0] ?? null;
-  }
-
-  return user;
 }
 
 async function ensureCredentialAccount(

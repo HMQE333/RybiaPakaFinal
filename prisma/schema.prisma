@@ -59,6 +59,7 @@ model User {
   reportsFiled   Report[]            @relation("ReportReporter")
   reportsHandled Report[]            @relation("ReportHandler")
   adminLogs      AdminLog[]
+  notificationSetting UserNotificationSetting?
 
   // existing relations
   accounts  Account[]
@@ -325,4 +326,16 @@ model SiteSetting {
   key       String   @id
   value     String
   updatedAt DateTime @updatedAt
+}
+
+model UserNotificationSetting {
+  userId          Int      @id
+  commentReply    Boolean  @default(true)
+  commentMention  Boolean  @default(true)
+  threadMention   Boolean  @default(true)
+  galleryMention  Boolean  @default(true)
+  newMessage      Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

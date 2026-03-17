@@ -10,7 +10,6 @@ import { APIError } from "better-auth/api";
 import prisma from "./prisma";
 import { sendMail } from "./mailer";
 import { getRandomDefaultAvatar } from "./avatarDefaults";
-import { isDataServiceConfigured } from "./dataClient";
 
 const secret =
   process.env.BETTER_AUTH_SECRET ??
@@ -86,9 +85,9 @@ export const auth = betterAuth({
 
           if (email) {
             const existingEmail = await prisma.$queryRaw<{ id: number }[]>`
-              SELECT id
-              FROM User
-              WHERE lower(email) = ${email}
+              SELECT "id"
+              FROM "User"
+              WHERE lower("email") = ${email}
               LIMIT 1
             `;
 
@@ -102,12 +101,12 @@ export const auth = betterAuth({
           if (candidates.length > 0) {
             const lowered = candidates.map((value) => value.toLowerCase());
             const existing = await prisma.$queryRaw<{ id: number }[]>`
-              SELECT id
-              FROM User
-              WHERE (username IS NOT NULL AND lower(username) IN (${Prisma.join(
+              SELECT "id"
+              FROM "User"
+              WHERE ("username" IS NOT NULL AND lower("username") IN (${Prisma.join(
                 lowered
               )}))
-                OR (nick IS NOT NULL AND lower(nick) IN (${Prisma.join(lowered)}))
+                OR ("nick" IS NOT NULL AND lower("nick") IN (${Prisma.join(lowered)}))
               LIMIT 1
             `;
 
@@ -206,9 +205,6 @@ export const auth = betterAuth({
 });
 
 export async function getSessionSafe(headers: Headers) {
-  if (!isDataServiceConfigured()) {
-    return null;
-  }
   try {
     return await auth.api.getSession({ headers });
   } catch {

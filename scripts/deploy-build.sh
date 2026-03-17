@@ -12,6 +12,9 @@ echo "==> Syncing database schema..."
 # if the DB already matches the schema.
 pnpm exec prisma db push --skip-generate --accept-data-loss
 
+echo "==> Generating Prisma client..."
+pnpm exec prisma generate
+
 echo "==> Building Next.js application..."
 pnpm run build
 
