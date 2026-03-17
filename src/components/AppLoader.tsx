@@ -5,16 +5,16 @@ import { useEffect, useRef, useState } from "react";
 import { markAppReady, waitForAppReadyTasks } from "@/lib/appReady";
 
 const FACTS = [
-  "Ciekawostka: Czy wiedziałeś, że ryby mają linię boczną, która wyczuwa drgania wody?",
-  "Ciekawostka: Czy wiedziałeś, że szczupak potrafi przyspieszyć w ułamku sekundy, by zaatakować ofiarę?",
-  "Ciekawostka: Czy wiedziałeś, że karpie mogą dożywać kilkudziesięciu lat?",
-  "Ciekawostka: Czy wiedziałeś, że sum ma bardzo czułe wąsy pomagające mu znaleźć pokarm w mętnej wodzie?",
-  "Ciekawostka: Czy wiedziałeś, że ryby reagują na dźwięki i wibracje?",
-  "Ciekawostka: Czy wiedziałeś, że wiele ryb żeruje najaktywniej o świcie i zmierzchu?",
-  "Ciekawostka: Czy wiedziałeś, że okonie często polują w stadach, zbijając narybek?",
-  "Ciekawostka: Czy wiedziałeś, że pstrągi preferują chłodne, dobrze natlenione wody?",
-  "Ciekawostka: Czy wiedziałeś, że leszcze chętnie żerują na miękkim dnie?",
-  "Ciekawostka: Czy wiedziałeś, że ryby mają bardzo dobrze rozwinięty węch?",
+  "Czy wiedziałeś, że ryby mają linię boczną, która wyczuwa drgania wody?",
+  "Czy wiedziałeś, że szczupak potrafi przyspieszyć w ułamku sekundy, by zaatakować ofiarę?",
+  "Czy wiedziałeś, że karpie mogą dożywać kilkudziesięciu lat?",
+  "Czy wiedziałeś, że sum ma bardzo czułe wąsy pomagające mu znaleźć pokarm w mętnej wodzie?",
+  "Czy wiedziałeś, że ryby reagują na dźwięki i wibracje?",
+  "Czy wiedziałeś, że wiele ryb żeruje najaktywniej o świcie i zmierzchu?",
+  "Czy wiedziałeś, że okonie często polują w stadach, zbijając narybek?",
+  "Czy wiedziałeś, że pstrągi preferują chłodne, dobrze natlenione wody?",
+  "Czy wiedziałeś, że leszcze chętnie żerują na miękkim dnie?",
+  "Czy wiedziałeś, że ryby mają bardzo dobrze rozwinięty węch?",
 ];
 
 const INITIAL_LOADER_TIMEOUT_MS = 5000;
@@ -239,13 +239,16 @@ export default function AppLoader() {
             </defs>
           </svg>
 
-          <p
-            className={`text-[11px] text-foreground-2 text-center max-w-[260px] leading-relaxed ${
-              exiting ? "al-fact-out" : ""
-            }`}
+          <div
+            className={`flex flex-col items-center gap-1 ${exiting ? "al-fact-out" : ""}`}
           >
-            {FACTS[factIndex]}
-          </p>
+            <span className="text-[10px] font-semibold uppercase tracking-widest text-accent/70">
+              Ciekawostka
+            </span>
+            <p className="text-[13px] text-foreground-2 text-center max-w-[280px] leading-relaxed">
+              {FACTS[factIndex]}
+            </p>
+          </div>
         </div>
       </div>
     </>
