@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { DEFAULT_AVATARS } from "@/lib/avatarDefaults";
 import { cn } from "@/utils";
 
@@ -237,8 +238,20 @@ export default function OnboardingWizard({ user, methods }: Props) {
 
   return (
     <div className="min-h-[100svh] bg-background flex flex-col">
-      <div className="flex items-center justify-between px-6 py-4 border-b border-white/5">
-        <span className="text-accent font-bold text-lg tracking-tight">🎣 rybiapaka.pl</span>
+      <div className="flex items-center justify-between px-6 py-4 border-b border-white/5 bg-background/95">
+        <div className="flex items-center gap-3">
+          <Image
+            src="/logo.png"
+            alt="RybiaPaka.pl logo"
+            width={44}
+            height={44}
+            unoptimized
+          />
+          <div className="flex flex-col">
+            <p className="text-[14px] text-accent tracking-wide leading-tight">RybiaPaka.pl</p>
+            <p className="text-[11px] text-foreground-2 leading-snug">Zintegrowana Platforma Wędkarska</p>
+          </div>
+        </div>
         <div className="flex items-center gap-1.5">
           {STEPS.map((s, i) => (
             <div key={s.label} className="flex items-center gap-1.5">
