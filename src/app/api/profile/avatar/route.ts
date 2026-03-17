@@ -1,17 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import prisma from "@/lib/prisma";
-import { galleryUpload } from "@/lib/galleryClient";
+import { saveAvatarImage } from "@/lib/localUpload";
 import { resolveSessionUserId } from "@/app/api/galeria/_utils";
-
-const MAX_AVATAR_BYTES = 2 * 1024 * 1024;
-
-const AVATAR_EXTENSIONS: Record<string, string> = {
-  "image/jpeg": "jpg",
-  "image/jpg": "jpg",
-  "image/png": "png",
-  "image/webp": "webp",
-};
 
 export async function POST(req: NextRequest) {
   const userId = await resolveSessionUserId(req);
@@ -39,30 +30,16 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "MISSING_FILE" }, { status: 400 });
     }
 
-    const extension = AVATAR_EXTENSIONS[file.type];
-    if (!extension) {
-      return NextResponse.json(
-        { error: "UNSUPPORTED_FILE_TYPE" },
-        { status: 400 }
-      );
-    }
-
-    if (file.size > MAX_AVATAR_BYTES) {
-      return NextResponse.json({ error: "FILE_TOO_LARGE" }, { status: 400 });
-    }
-
-    const uploadForm = new FormData();
-    uploadForm.set("file", file);
-    uploadForm.set("kind", "avatar");
-    uploadForm.set("authorId", String(userId));
-
     try {
-      const uploadResult = await galleryUpload(uploadForm);
-      newAvatarUrl = String(uploadResult.url || "").trim();
-      if (!newAvatarUrl) {
-        return NextResponse.json({ error: "UPLOAD_FAILED" }, { status: 502 });
+      newAvatarUrl = await saveAvatarImage(file);
+    } catch (uploadError) {
+      const msg = (uploadError as Error)?.message ?? "";
+      if (msg === "UNSUPPORTED_FILE_TYPE") {
+        return NextResponse.json({ error: "UNSUPPORTED_FILE_TYPE" }, { status: 400 });
       }
-    } catch {
+      if (msg === "FILE_TOO_LARGE") {
+        return NextResponse.json({ error: "FILE_TOO_LARGE" }, { status: 400 });
+      }
       return NextResponse.json({ error: "UPLOAD_FAILED" }, { status: 502 });
     }
   } else {

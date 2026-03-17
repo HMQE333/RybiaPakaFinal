@@ -2,8 +2,7 @@ import { Prisma } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
 
 import { getViewerFromHeaders, isAdminRole } from "@/lib/adminAccess";
-import { dataFetch } from "@/lib/dataClient";
-import { galleryUpload } from "@/lib/galleryClient";
+import { saveGalleryImage } from "@/lib/localUpload";
 import prisma from "@/lib/prisma";
 
 import {
@@ -224,92 +223,57 @@ export async function POST(req: NextRequest) {
   }
 
   const safeTitle = title.slice(0, MAX_TITLE_LENGTH);
-  const safeDescription = description
-    ? description.slice(0, MAX_DESCRIPTION_LENGTH)
-    : null;
+  const safeDescription = description ? description.slice(0, MAX_DESCRIPTION_LENGTH) : null;
 
   try {
-    let createdItem: { id: string; createdAt?: string | Date; imageUrl?: string } | null =
-      null;
-
     if (uploadedFile) {
-      const uploadForm = new FormData();
-      uploadForm.set("file", uploadedFile);
-      uploadForm.set("kind", "gallery");
-      uploadForm.set("authorId", String(userId));
-      uploadForm.set("title", safeTitle);
-      if (safeDescription) {
-        uploadForm.set("description", safeDescription);
-      }
-      uploadForm.set("category", normalizedCategory);
-
-      const uploadResult = await galleryUpload(uploadForm);
-      imageUrl = String(uploadResult.url || "").trim();
-      if (!imageUrl) {
+      try {
+        imageUrl = await saveGalleryImage(uploadedFile);
+      } catch (uploadError) {
+        const msg = (uploadError as Error)?.message ?? "";
+        if (msg === "UNSUPPORTED_FILE_TYPE") {
+          return NextResponse.json({ error: "UNSUPPORTED_FILE_TYPE" }, { status: 400 });
+        }
+        if (msg === "FILE_TOO_LARGE") {
+          return NextResponse.json({ error: "FILE_TOO_LARGE" }, { status: 400 });
+        }
         return NextResponse.json({ error: "UPLOAD_FAILED" }, { status: 502 });
       }
-      if (uploadResult.item && typeof uploadResult.item === "object") {
-        const item = uploadResult.item as {
-          id?: string;
-          createdAt?: string | Date;
-          imageUrl?: string;
-        };
-        createdItem = {
-          id: String(item.id ?? ""),
-          createdAt: item.createdAt,
-          imageUrl: item.imageUrl ?? imageUrl,
-        };
-      }
     }
 
-    if (!createdItem) {
-      const response = await dataFetch("/gallery/items", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({
-          title: safeTitle,
-          description: safeDescription,
-          category: normalizedCategory,
-          imageUrl,
-          authorId: userId,
-        }),
-      });
-
-      const data = (await response.json()) as { item?: { id?: string; createdAt?: string | Date } };
-      if (data?.item?.id) {
-        createdItem = { id: data.item.id, createdAt: data.item.createdAt, imageUrl };
-      } else {
-        return NextResponse.json({ error: "FAILED_TO_CREATE" }, { status: 500 });
-      }
-    }
-
-    const author = await prisma.user.findUnique({
-      where: { id: userId },
-      select: { id: true, username: true, nick: true, name: true, avatarUrl: true },
+    const created = await prisma.galleryItem.create({
+      data: {
+        title: safeTitle,
+        description: safeDescription,
+        imageUrl,
+        category: normalizedCategory,
+        authorId: userId,
+      },
+      include: {
+        author: {
+          select: { id: true, username: true, nick: true, name: true, avatarUrl: true },
+        },
+      },
     });
-
-    const createdAt = createdItem?.createdAt
-      ? new Date(createdItem.createdAt).toISOString()
-      : new Date().toISOString();
 
     return NextResponse.json(
       {
         item: {
-          id: createdItem?.id ?? "",
-          title: safeTitle,
-          description: safeDescription,
-          imageUrl: createdItem?.imageUrl ?? imageUrl,
-          category: normalizedCategory,
-          createdAt,
+          id: created.id,
+          title: created.title,
+          description: created.description,
+          imageUrl: created.imageUrl,
+          category: created.category,
+          createdAt: created.createdAt.toISOString(),
           likes: 0,
           comments: 0,
           liked: false,
           canEdit: true,
           canDelete: true,
           author: {
-            id: author?.id ?? userId,
-            name: resolveAuthorName(author ?? {}, null),
-            avatar: author?.avatarUrl ?? null,
+            id: created.author.id,
+            name: resolveAuthorName(created.author, null),
+            avatar: created.author.avatarUrl ?? null,
           },
         },
       },

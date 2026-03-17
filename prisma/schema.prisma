@@ -62,11 +62,15 @@ model User {
   notificationSetting UserNotificationSetting?
 
   // existing relations
-  accounts  Account[]
-  sessions  Session[]
-  threads   Thread[]
-  posts     Post[]
-  reactions Reaction[]
+  accounts           Account[]
+  sessions           Session[]
+  threads            Thread[]
+  posts              Post[]
+  reactions          Reaction[]
+  galleryItems       GalleryItem[]
+  galleryLikes       GalleryLike[]
+  galleryComments    GalleryComment[]
+  galleryCommentLikes GalleryCommentLike[]
 
   @@index([username])
   @@index([rankId])
@@ -220,17 +224,22 @@ model Message {
 }
 
 model ChannelMessage {
-  id        String   @id @default(cuid())
-  channelId String
-  authorId  Int?
-  authorName String?
-  text      String
-  createdAt DateTime @default(now())
+  id          String    @id @default(cuid())
+  channelId   String
+  authorId    Int?
+  authorName  String?
+  text        String
+  createdAt   DateTime  @default(now())
+  hiddenAt    DateTime?
+  hiddenById  Int?
+  deletedAt   DateTime?
+  deletedById Int?
 
   author User? @relation(fields: [authorId], references: [id], onDelete: SetNull)
 
   @@index([channelId, createdAt])
   @@index([authorId, createdAt])
+  @@index([deletedAt])
 }
 
 model FriendRequest {
@@ -338,4 +347,71 @@ model UserNotificationSetting {
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
   user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model GalleryItem {
+  id           String    @id @default(cuid())
+  title        String
+  description  String?
+  imageUrl     String
+  thumbnailUrl String?
+  category     String
+  authorId     Int
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  deletedAt    DateTime?
+
+  author   User             @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  likes    GalleryLike[]
+  comments GalleryComment[]
+
+  @@index([category, createdAt])
+  @@index([authorId, createdAt])
+  @@index([deletedAt])
+}
+
+model GalleryLike {
+  id        String   @id @default(cuid())
+  itemId    String
+  userId    Int
+  createdAt DateTime @default(now())
+
+  item GalleryItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  user User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([itemId, userId])
+  @@index([userId])
+}
+
+model GalleryComment {
+  id        String    @id @default(cuid())
+  itemId    String
+  authorId  Int
+  parentId  String?
+  content   String
+  createdAt DateTime  @default(now())
+  deletedAt DateTime?
+
+  item     GalleryItem          @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  author   User                 @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  parent   GalleryComment?      @relation("GalleryCommentParent", fields: [parentId], references: [id])
+  children GalleryComment[]     @relation("GalleryCommentParent")
+  likes    GalleryCommentLike[]
+
+  @@index([itemId, createdAt])
+  @@index([parentId, createdAt])
+  @@index([deletedAt])
+}
+
+model GalleryCommentLike {
+  id        String   @id @default(cuid())
+  commentId String
+  userId    Int
+  createdAt DateTime @default(now())
+
+  comment GalleryComment @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  user    User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([commentId, userId])
+  @@index([userId])
 }

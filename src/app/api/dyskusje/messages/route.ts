@@ -130,6 +130,9 @@ const serializeCreatedMessage = (message: CreatedMessage) =>
     role: message.author?.role ?? null,
   });
 
+const PAGE_SIZE = 60;
+const RETENTION_DAYS = 60;
+
 export async function GET(req: NextRequest) {
   const viewer = await resolveSessionViewer(req);
   const viewerId = viewer?.id ?? null;
@@ -151,7 +154,19 @@ export async function GET(req: NextRequest) {
 
   await ensureChannelMessageTable();
 
-  const messages = await prisma.$queryRaw<ChannelMessageRow[]>(
+  const beforeRaw = search.get("before");
+  const beforeDate = beforeRaw ? new Date(beforeRaw) : null;
+  const validBefore = beforeDate && Number.isFinite(beforeDate.getTime()) ? beforeDate : null;
+
+  const retentionCutoff = new Date(Date.now() - RETENTION_DAYS * 24 * 60 * 60 * 1000);
+
+  const beforeClause = validBefore
+    ? Prisma.sql`AND cm."createdAt" < ${validBefore}`
+    : Prisma.sql``;
+
+  const fetchLimit = PAGE_SIZE + 1;
+
+  const rows = await prisma.$queryRaw<ChannelMessageRow[]>(
     Prisma.sql`
       SELECT
         cm."id" as id,
@@ -171,13 +186,20 @@ export async function GET(req: NextRequest) {
       LEFT JOIN "User" u ON u."id" = cm."authorId"
       WHERE cm."channelId" = ${channelId}
         AND cm."deletedAt" IS NULL
-      ORDER BY cm."createdAt" ASC
-      LIMIT 200;
+        AND cm."createdAt" > ${retentionCutoff}
+        ${beforeClause}
+      ORDER BY cm."createdAt" DESC
+      LIMIT ${fetchLimit};
     `
   );
 
+  const hasOlder = rows.length > PAGE_SIZE;
+  const page = hasOlder ? rows.slice(0, PAGE_SIZE) : rows;
+  page.reverse();
+
   return NextResponse.json({
-    messages: messages.map((message) => serializeMessage(message)),
+    messages: page.map((message) => serializeMessage(message)),
+    hasOlder,
     viewer: { authenticated: Boolean(viewerId), role: viewer?.role ?? null },
   });
 }

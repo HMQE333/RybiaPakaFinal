@@ -23,6 +23,9 @@ type ChatMessageListProps = {
   onHideMessage: (message: ChannelMessage, nextHidden: boolean) => void;
   onDeleteMessage: (messageId: string) => void;
   onToggleReveal: (messageId: string) => void;
+  hasOlder?: boolean;
+  loadingOlder?: boolean;
+  onLoadOlder?: () => void;
 };
 
 export default function ChatMessageList({
@@ -41,12 +44,27 @@ export default function ChatMessageList({
   onHideMessage,
   onDeleteMessage,
   onToggleReveal,
+  hasOlder,
+  loadingOlder,
+  onLoadOlder,
 }: ChatMessageListProps) {
   return (
     <div
       ref={listRef}
       className="custom-scrollbar relative flex-1 min-h-0 space-y-4 overflow-y-auto px-5 py-4"
     >
+      {!loading && hasOlder && (
+        <div className="flex justify-center pb-2">
+          <button
+            type="button"
+            onClick={onLoadOlder}
+            disabled={loadingOlder}
+            className="rounded-xl border border-white/10 bg-background-4/60 px-4 py-2 text-xs text-foreground-2 transition hover:border-accent/30 hover:text-foreground disabled:opacity-50"
+          >
+            {loadingOlder ? "Ładuję starsze..." : "Załaduj starsze wiadomości"}
+          </button>
+        </div>
+      )}
       {loading ? (
         <div className="rounded-xl border border-white/10 bg-background-4/60 px-4 py-3 text-sm text-foreground-2">
           Ładuję wiadomości...

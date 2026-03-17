@@ -157,6 +157,10 @@ function ChatPageInner() {
   const [error, setError] = useState<string | null>(null);
   const [accessDenied, setAccessDenied] = useState(false);
   const [emojiOpen, setEmojiOpen] = useState(false);
+  const [hasOlder, setHasOlder] = useState(false);
+  const [loadingOlder, setLoadingOlder] = useState(false);
+  const oldestCreatedAtRef = useRef<string | null>(null);
+  const isLoadingOlderRef = useRef(false);
   const initialAuthHint = readAuthHint();
   const [isAuthenticated, setIsAuthenticated] = useState(
     initialAuthHint ?? false
@@ -540,20 +544,21 @@ function ChatPageInner() {
       setAuthReady(true);
       setViewerRole(data?.viewer?.role ?? null);
       writeAuthHint(authed);
-      setMessages(
-        Array.isArray(data?.messages)
-          ? data.messages.map((msg: ChannelMessage) => ({
-              ...msg,
-              hiddenAt: msg.hiddenAt ?? null,
-              author: {
-                id: msg.author?.id ?? null,
-                name: msg.author?.name ?? "Gość",
-                avatar: msg.author?.avatar ?? null,
-                role: msg.author?.role ?? null,
-              },
-            }))
-          : []
-      );
+      const normalized = Array.isArray(data?.messages)
+        ? data.messages.map((msg: ChannelMessage) => ({
+            ...msg,
+            hiddenAt: msg.hiddenAt ?? null,
+            author: {
+              id: msg.author?.id ?? null,
+              name: msg.author?.name ?? "Gość",
+              avatar: msg.author?.avatar ?? null,
+              role: msg.author?.role ?? null,
+            },
+          }))
+        : [];
+      setMessages(normalized);
+      setHasOlder(Boolean(data?.hasOlder));
+      oldestCreatedAtRef.current = normalized.length > 0 ? normalized[0].createdAt : null;
     } catch {
       setIsAuthenticated(false);
       setAuthReady(true);
@@ -570,11 +575,74 @@ function ChatPageInner() {
     fetchMessages();
   }, [fetchMessages]);
 
+  const loadOlderMessages = useCallback(async () => {
+    if (!activeChannel || isLoadingOlderRef.current || !hasOlder) return;
+    const cursor = oldestCreatedAtRef.current;
+    if (!cursor) return;
+
+    isLoadingOlderRef.current = true;
+    setLoadingOlder(true);
+
+    try {
+      const url = `/api/dyskusje/messages?kanal=${encodeURIComponent(activeChannel.id)}&before=${encodeURIComponent(cursor)}`;
+      const res = await fetch(url, { cache: "no-store", credentials: "include" });
+      if (!res.ok) return;
+
+      const data = await res.json();
+      const older = Array.isArray(data?.messages)
+        ? data.messages.map((msg: ChannelMessage) => ({
+            ...msg,
+            hiddenAt: msg.hiddenAt ?? null,
+            author: {
+              id: msg.author?.id ?? null,
+              name: msg.author?.name ?? "Gość",
+              avatar: msg.author?.avatar ?? null,
+              role: msg.author?.role ?? null,
+            },
+          }))
+        : [];
+
+      if (older.length === 0) {
+        setHasOlder(false);
+        return;
+      }
+
+      const el = listRef.current;
+      const prevScrollHeight = el ? el.scrollHeight : 0;
+
+      setMessages((prev) => [...older, ...prev]);
+      setHasOlder(Boolean(data?.hasOlder));
+      oldestCreatedAtRef.current = older[0].createdAt;
+
+      requestAnimationFrame(() => {
+        if (el) {
+          el.scrollTop = el.scrollHeight - prevScrollHeight;
+        }
+      });
+    } catch {
+    } finally {
+      setLoadingOlder(false);
+      isLoadingOlderRef.current = false;
+    }
+  }, [activeChannel, hasOlder]);
+
+  useEffect(() => {
+    const el = listRef.current;
+    if (!el) return;
+    const onScroll = () => {
+      if (el.scrollTop < 80 && !isLoadingOlderRef.current && hasOlder) {
+        void loadOlderMessages();
+      }
+    };
+    el.addEventListener("scroll", onScroll, { passive: true });
+    return () => el.removeEventListener("scroll", onScroll);
+  }, [hasOlder, loadOlderMessages]);
+
   useEffect(() => {
     if (!loading) {
       scrollToBottom();
     }
-  }, [messages.length, loading, scrollToBottom]);
+  }, [loading, scrollToBottom]);
 
   const toggleRevealMessage = useCallback((messageId: string) => {
     setRevealedMessageIds((prev) => ({
@@ -828,6 +896,9 @@ function ChatPageInner() {
                 onHideMessage={handleHideMessage}
                 onDeleteMessage={handleDeleteMessage}
                 onToggleReveal={toggleRevealMessage}
+                hasOlder={hasOlder}
+                loadingOlder={loadingOlder}
+                onLoadOlder={loadOlderMessages}
               />
 
               <ChatComposer
