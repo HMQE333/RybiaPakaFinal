@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "pretty": "pnpm exec prettier . --write",
-    "dev": "next dev",
+    "dev": "next dev -p 5000 -H 0.0.0.0",
     "build": "next build",
     "start": "node ./scripts/run-prod.js",
     "start:raw": "next start",
@@ -21,6 +21,9 @@
   },
   "prisma": {
     "seed": "pnpm exec tsx prisma/seed.ts"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": ["@prisma/client", "@prisma/engines", "esbuild", "prisma", "sharp"]
   },
   "dependencies": {
     "@prisma/client": "5.22.0",

@@ -1,0 +1,17 @@
+modules = ["nodejs-20", "web"]
+[agent]
+expertMode = true
+
+[nix]
+channel = "stable-25_05"
+
+[userenv]
+
+[userenv.shared]
+PORT = "5000"
+NEXT_PUBLIC_SITE_URL = "https://6f8050f6-1fc0-4c4d-8e0e-30be532bb2bf-00-2pyxv8nnrqvhs.spock.replit.dev"
+BETTER_AUTH_URL = "https://6f8050f6-1fc0-4c4d-8e0e-30be532bb2bf-00-2pyxv8nnrqvhs.spock.replit.dev"
+NEXTAUTH_URL = "https://6f8050f6-1fc0-4c4d-8e0e-30be532bb2bf-00-2pyxv8nnrqvhs.spock.replit.dev"
+PRISMA_MIGRATE = "1"
+PRISMA_GENERATE = "1"
+PRISMA_RESTORE = "0"
