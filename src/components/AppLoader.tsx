@@ -207,8 +207,7 @@ export default function AppLoader() {
               <line x1="69.3" y1="45" x2="90.7" y2="45" stroke="#22c55e" strokeWidth="0.8" strokeOpacity="0.45" />
 
               {/* Bottom pin */}
-              <line x1="80" y1="62" x2="80" y2="75" stroke="#6b7280" strokeWidth="1.4" strokeLinecap="round" />
-              <circle cx="80" cy="77" r="2" fill="#6b7280" />
+              <line x1="80" y1="62" x2="80" y2="76" stroke="#22c55e" strokeWidth="1.4" strokeLinecap="round" />
             </g>
 
             {/* Water mask — solid bg rect hides the bobber as it sinks below y=44 */}
