@@ -4,6 +4,7 @@ import bcrypt from "bcryptjs";
 
 import { auth } from "@/lib/auth";
 import prisma from "@/lib/prisma";
+import { checkRateLimit, getClientIp, AUTH_RULES } from "@/lib/rateLimiter";
 
 export const runtime = "nodejs";
 
@@ -40,6 +41,16 @@ async function findUserByEmail(email: string): Promise<ExistingUser | null> {
 }
 
 export async function POST(req: NextRequest) {
+  const ip = getClientIp(req);
+  const limit = checkRateLimit(ip, "sign-up", AUTH_RULES.signUp);
+  if (!limit.allowed) {
+    const retryAfterSec = Math.ceil(limit.retryAfterMs / 1000);
+    return NextResponse.json(
+      { message: "TOO_MANY_REQUESTS" },
+      { status: 429, headers: { "Retry-After": String(retryAfterSec) } }
+    );
+  }
+
   const bodyText = await req.text();
   let body: SignUpPayload;
 
@@ -92,7 +103,7 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const passwordHash = await bcrypt.hash(password, 10);
+  const passwordHash = await bcrypt.hash(password, 12);
   const updates: Prisma.UserUpdateInput = {
     email,
     passwordHash,

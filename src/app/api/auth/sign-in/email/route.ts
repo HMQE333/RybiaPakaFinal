@@ -3,6 +3,7 @@ import bcrypt from "bcryptjs";
 
 import { auth } from "@/lib/auth";
 import prisma from "@/lib/prisma";
+import { checkRateLimit, getClientIp, AUTH_RULES } from "@/lib/rateLimiter";
 
 export const runtime = "nodejs";
 
@@ -60,6 +61,16 @@ async function getCredentialPassword(userId: number) {
 }
 
 export async function POST(req: NextRequest) {
+  const ip = getClientIp(req);
+  const limit = checkRateLimit(ip, "sign-in", AUTH_RULES.signIn);
+  if (!limit.allowed) {
+    const retryAfterSec = Math.ceil(limit.retryAfterMs / 1000);
+    return NextResponse.json(
+      { message: "TOO_MANY_REQUESTS" },
+      { status: 429, headers: { "Retry-After": String(retryAfterSec) } }
+    );
+  }
+
   const bodyText = await req.text();
   let body: SignInPayload;
 

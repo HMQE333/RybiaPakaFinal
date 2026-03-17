@@ -157,7 +157,7 @@ export const auth = betterAuth({
     minPasswordLength: 8,
     maxPasswordLength: 128,
     password: {
-      hash: async (password) => bcrypt.hash(password, 10),
+      hash: async (password) => bcrypt.hash(password, 12),
       verify: async ({ hash, password }) => bcrypt.compare(password, hash),
     },
     sendResetPassword: async ({ user, url }) => {

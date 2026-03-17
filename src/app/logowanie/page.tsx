@@ -48,6 +48,10 @@ export default function LogInPage() {
       title: "Błąd logowania",
       message: "Wystąpił nieoczekiwany błąd. Spróbuj ponownie później.",
     },
+    7: {
+      title: "Zbyt wiele prób",
+      message: "Za dużo nieudanych prób logowania. Spróbuj ponownie za 15 minut.",
+    },
   };
 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -125,6 +129,11 @@ export default function LogInPage() {
           res.status === 403
         ) {
           setErrorMessage(1);
+          return;
+        }
+
+        if (code === "TOO_MANY_REQUESTS" || res.status === 429) {
+          setErrorMessage(7);
           return;
         }
 
