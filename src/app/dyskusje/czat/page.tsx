@@ -123,7 +123,7 @@ const CUSTOM_EMOJIS: CustomEmoji[] = CUSTOM_EMOJI_FILES.map(
     return {
       id: index + 1,
       label,
-      src: `/emojis/${encodeURIComponent(fileName)}`,
+      src: `/emojis/${fileName}`,
       code: `:${slug}:`,
       legacyId: getLegacyEmojiId(fileName),
     };
