@@ -6,9 +6,11 @@ import { useEffect, useState } from "react";
 import {
   LucideBell,
   LucideLogOut,
+  LucideMessageSquare,
   LucideShield,
   LucideUser,
   LucideUserPlus,
+  LucideUsers,
 } from "lucide-react";
 
 import Logo from "../Logo";
@@ -166,6 +168,26 @@ export default function Header() {
 
   const parseNotification = (item: NotificationItem): ParsedNotification => {
     const fallbackTitle = item.type || "Powiadomienie";
+
+    if (item.type === "FRIEND_REQUEST") {
+      return { title: "Nowe zaproszenie do znajomych", href: "/znajomi" };
+    }
+    if (item.type === "FRIEND_ACCEPTED") {
+      return { title: "Zaproszenie do znajomych zostało przyjęte", href: "/znajomi" };
+    }
+    if (item.type === "NEW_MESSAGE") {
+      try {
+        const parsed = JSON.parse(item.payload ?? "{}");
+        const fromId = parsed?.fromId;
+        return {
+          title: "Nowa wiadomość prywatna",
+          href: fromId ? `/wiadomosci/${fromId}` : "/wiadomosci",
+        };
+      } catch {
+        return { title: "Nowa wiadomość prywatna", href: "/wiadomosci" };
+      }
+    }
+
     if (!item.payload) {
       return { title: fallbackTitle };
     }
@@ -307,6 +329,22 @@ export default function Header() {
                   <p className="text-[12px] max-sm:hidden">Administracja</p>
                 </Link>
               )}
+              <Link
+                href="/znajomi"
+                aria-label="Znajomi"
+                className="flex items-center justify-center gap-2 px-2 py-2 text-foreground-2 hover:text-accent border border-background-4 rounded-lg transition-colors sm:px-3 lg:gap-[15px] lg:px-4"
+                title="Znajomi"
+              >
+                <LucideUsers size={16} />
+              </Link>
+              <Link
+                href="/wiadomosci"
+                aria-label="Wiadomości"
+                className="flex items-center justify-center gap-2 px-2 py-2 text-foreground-2 hover:text-accent border border-background-4 rounded-lg transition-colors sm:px-3 lg:gap-[15px] lg:px-4"
+                title="Wiadomości"
+              >
+                <LucideMessageSquare size={16} />
+              </Link>
               <div className="relative">
                 <button
                   type="button"

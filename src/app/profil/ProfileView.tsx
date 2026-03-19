@@ -113,8 +113,8 @@ export default function ProfileView({
 
             {showSocialActions && (
               <div className="flex flex-wrap items-center gap-2 sm:gap-3 pb-1">
-                <AddFriendButton />
-                <SendMessageButton />
+                <AddFriendButton targetUsername={user.username ?? undefined} targetId={user.id} />
+                <SendMessageButton targetId={user.id} />
                 <ReportButton />
               </div>
             )}
