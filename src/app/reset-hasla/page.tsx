@@ -143,6 +143,7 @@ function ResetPasswordContent() {
               type={showPassword ? "text" : "password"}
               placeholder="Nowe hasło"
               minLength={8}
+              autoComplete="new-password"
             />
             <FormVisibilityButton
               visible={showPassword}
@@ -156,6 +157,7 @@ function ResetPasswordContent() {
               type={showPassword ? "text" : "password"}
               placeholder="Powtórz hasło"
               minLength={8}
+              autoComplete="new-password"
             />
             <FormVisibilityButton
               visible={showPassword}

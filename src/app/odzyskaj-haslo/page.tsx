@@ -104,7 +104,7 @@ export default function ForgotPasswordPage() {
         )}
 
         <form onSubmit={onSubmit} className="w-full flex flex-col gap-[10px]">
-          <FormInput id="email" type="email" placeholder="E-mail" />
+          <FormInput id="email" type="email" placeholder="E-mail" autoComplete="email" />
 
           <FormButton
             title={status === "submitting" ? "Wysyłanie..." : "Wyślij link"}

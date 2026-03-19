@@ -217,13 +217,14 @@ export default function LogInPage() {
           onSubmit={onSubmit}
           className="w-full flex flex-col items-center justify-center gap-[10px]"
         >
-          <FormInput id="email" type="email" placeholder="E-mail" />
+          <FormInput id="email" type="email" placeholder="E-mail" autoComplete="email" />
 
           <div className="w-full relative">
             <FormInput
               id="password"
               type={showPassword ? "text" : "password"}
               placeholder="Hasło"
+              autoComplete="current-password"
             />
             <FormVisibilityButton
               visible={showPassword}

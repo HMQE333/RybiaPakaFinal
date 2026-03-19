@@ -174,8 +174,8 @@ export default function RegisterPage() {
         )}
 
         <form onSubmit={onSubmit} className="w-full flex flex-col gap-[10px]">
-          <FormInput id="username" type="text" placeholder="Nazwa użytkownika" />
-          <FormInput id="email" type="email" placeholder="E-mail" />
+          <FormInput id="username" type="text" placeholder="Nazwa użytkownika" autoComplete="username" />
+          <FormInput id="email" type="email" placeholder="E-mail" autoComplete="email" />
 
           <div className="relative">
             <FormInput
@@ -184,6 +184,7 @@ export default function RegisterPage() {
               placeholder="Hasło"
               title="Minimum 8 znaków."
               minLength={8}
+              autoComplete="new-password"
             />
             <FormVisibilityButton
               visible={showPassword}
@@ -198,6 +199,7 @@ export default function RegisterPage() {
               placeholder="Powtórz hasło"
               title="Minimum 8 znaków."
               minLength={8}
+              autoComplete="new-password"
             />
             <FormVisibilityButton
               visible={showPassword}

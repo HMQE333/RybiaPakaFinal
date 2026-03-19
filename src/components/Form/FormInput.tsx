@@ -10,6 +10,7 @@ interface FormInputProps {
   minLength?: number;
   maxLength?: number;
   ariaLabel?: string;
+  autoComplete?: string;
 }
 
 export default function FormInput({
@@ -24,6 +25,7 @@ export default function FormInput({
   minLength,
   maxLength,
   ariaLabel,
+  autoComplete,
 }: FormInputProps) {
   return (
     <input
@@ -39,6 +41,7 @@ export default function FormInput({
       minLength={minLength}
       maxLength={maxLength}
       aria-label={ariaLabel ?? placeholder}
+      autoComplete={autoComplete}
       className="w-full px-[15px] py-[10px] text-[12px] text-foreground-2 bg-background border border-background-4 rounded-lg focus:outline-none focus:border-accent-2 focus:ring-0"
     />
   );
