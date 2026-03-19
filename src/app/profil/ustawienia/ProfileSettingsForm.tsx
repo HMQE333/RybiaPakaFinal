@@ -664,25 +664,13 @@ export default function ProfileSettingsForm({
     setBannerMessage(null);
   };
 
-  const handleBannerRemove = async () => {
+  const handleBannerRemove = () => {
     setBannerPresetId("");
     setBannerUploadBlob(null);
     setBannerFileName(null);
     setBannerPreviewUrl("");
     setBannerSourceType(null);
     setBannerMessage(null);
-
-    if (bannerInitialRef.current) {
-      try {
-        await fetch("/api/profile/banner", {
-          method: "DELETE",
-          credentials: "include",
-        });
-        bannerInitialRef.current = "";
-      } catch {
-        // ignore
-      }
-    }
   };
 
   const handleSubmit = async (event: React.FormEvent) => {
@@ -743,61 +731,45 @@ export default function ProfileSettingsForm({
       }
     }
 
-    const bannerCurrentValue = bannerSourceType === "preset" && bannerPresetId
-      ? `preset:${bannerPresetId}`
-      : bannerSourceType === "upload" && (bannerUploadBlob ? "__new_upload__" : bannerPreviewUrl)
-        ? bannerUploadBlob ? "__new_upload__" : bannerPreviewUrl
-        : "";
-    const bannerChanged =
-      bannerUploadBlob !== null ||
-      bannerCurrentValue !== bannerInitialRef.current;
+    let resolvedBannerUrl: string | null =
+      bannerSourceType === "preset" && bannerPresetId
+        ? `preset:${bannerPresetId}`
+        : bannerSourceType === "upload"
+          ? bannerPreviewUrl || null
+          : null;
 
-    if (bannerChanged) {
+    if (bannerUploadBlob && bannerFileName) {
       setBannerMessage(null);
       try {
-        if (bannerUploadBlob && bannerFileName) {
-          const fd = new FormData();
-          fd.append("file", new File([bannerUploadBlob], bannerFileName, { type: bannerUploadBlob.type || "image/jpeg" }));
-          const res = await fetch("/api/profile/banner", {
-            method: "POST",
-            credentials: "include",
-            body: fd,
-          });
-          if (!res.ok) {
-            const data = await res.json().catch(() => ({}));
-            const code = data?.error;
-            setBannerMessage(
-              code === "FILE_TOO_LARGE" ? "Plik banera jest za duży (max 5 MB)."
-              : code === "UNSUPPORTED_FILE_TYPE" ? "Nieobsługiwany format pliku banera."
-              : "Nie udało się zapisać banera."
-            );
-            setStatusTone("error");
-            setStatusMessage("Nie udało się zapisać banera.");
-            setIsSaving(false);
-            return;
-          }
+        const fd = new FormData();
+        fd.append("file", new File([bannerUploadBlob], bannerFileName, { type: bannerUploadBlob.type || "image/jpeg" }));
+        const res = await fetch("/api/profile/banner", {
+          method: "POST",
+          credentials: "include",
+          body: fd,
+        });
+        if (!res.ok) {
           const data = await res.json().catch(() => ({}));
-          bannerInitialRef.current = data?.bannerUrl ?? "";
-          setBannerUploadBlob(null);
-          setBannerFileName(null);
-        } else if (bannerSourceType === "preset" && bannerPresetId) {
-          const res = await fetch("/api/profile/banner", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            credentials: "include",
-            body: JSON.stringify({ presetId: bannerPresetId }),
-          });
-          if (!res.ok) {
-            setStatusTone("error");
-            setStatusMessage("Nie udało się zapisać banera.");
-            setIsSaving(false);
-            return;
-          }
-          bannerInitialRef.current = `preset:${bannerPresetId}`;
-        } else if (!bannerSourceType && bannerInitialRef.current) {
-          await fetch("/api/profile/banner", { method: "DELETE", credentials: "include" });
-          bannerInitialRef.current = "";
+          const code = data?.error;
+          setBannerMessage(
+            code === "FILE_TOO_LARGE" ? "Plik banera jest za duży (max 5 MB)."
+            : code === "UNSUPPORTED_FILE_TYPE" ? "Nieobsługiwany format pliku banera."
+            : "Nie udało się zapisać banera."
+          );
+          setStatusTone("error");
+          setStatusMessage("Nie udało się zapisać banera.");
+          setIsSaving(false);
+          return;
         }
+        const data = await res.json().catch(() => ({}));
+        resolvedBannerUrl = data?.bannerUrl ?? null;
+        setBannerUploadBlob(null);
+        setBannerFileName(null);
+        if (resolvedBannerUrl) {
+          setBannerPreviewUrl(resolvedBannerUrl);
+          setBannerSourceType("upload");
+        }
+        bannerInitialRef.current = resolvedBannerUrl ?? "";
       } catch {
         setStatusTone("error");
         setStatusMessage("Nie udało się zapisać banera.");
@@ -885,12 +857,14 @@ export default function ProfileSettingsForm({
       age?: number | null;
       ageRange?: string | null;
       pronouns?: string | null;
+      bannerUrl?: string | null;
       regionId?: string | null;
     } = {
       bio: trimmedBio || null,
       age: parsedAge !== null ? parsedAge : null,
       ageRange: ageRange.trim() || null,
       pronouns: pronouns.trim() || null,
+      bannerUrl: resolvedBannerUrl,
       regionId: regionId || null,
     };
 
