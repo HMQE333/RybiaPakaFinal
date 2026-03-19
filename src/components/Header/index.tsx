@@ -7,6 +7,7 @@ import {
   LucideBell,
   LucideLogOut,
   LucideMessageSquare,
+  LucideSettings,
   LucideShield,
   LucideUser,
   LucideUserPlus,
@@ -58,6 +59,7 @@ export default function Header() {
   }>({ count: 0, items: [] });
   const [notifOpen, setNotifOpen] = useState(false);
   const [notifLoading, setNotifLoading] = useState(false);
+  const [accountMenuOpen, setAccountMenuOpen] = useState(false);
 
   useEffect(() => {
     const hint = readAuthHint();
@@ -254,6 +256,17 @@ export default function Header() {
     loadNotifications();
   }, [notifOpen, isLoggedIn, sessionResolved]);
 
+  useEffect(() => {
+    if (!accountMenuOpen && !notifOpen) return;
+    const handler = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (!target.closest("[data-account-menu]")) setAccountMenuOpen(false);
+      if (!target.closest("[data-notif-menu]")) setNotifOpen(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [accountMenuOpen, notifOpen]);
+
   const logout = async () => {
     if (loggingOut) return;
     setLoggingOut(true);
@@ -329,23 +342,7 @@ export default function Header() {
                   <p className="text-[12px] max-sm:hidden">Administracja</p>
                 </Link>
               )}
-              <Link
-                href="/znajomi"
-                aria-label="Znajomi"
-                className="flex items-center justify-center gap-2 px-2 py-2 text-foreground-2 hover:text-accent border border-background-4 rounded-lg transition-colors sm:px-3 lg:gap-[15px] lg:px-4"
-                title="Znajomi"
-              >
-                <LucideUsers size={16} />
-              </Link>
-              <Link
-                href="/wiadomosci"
-                aria-label="Wiadomości"
-                className="flex items-center justify-center gap-2 px-2 py-2 text-foreground-2 hover:text-accent border border-background-4 rounded-lg transition-colors sm:px-3 lg:gap-[15px] lg:px-4"
-                title="Wiadomości"
-              >
-                <LucideMessageSquare size={16} />
-              </Link>
-              <div className="relative">
+              <div className="relative" data-notif-menu>
                 <button
                   type="button"
                   onClick={() => setNotifOpen((prev) => !prev)}
@@ -418,26 +415,55 @@ export default function Header() {
                   </div>
                 )}
               </div>
-              <Link
-                href={accountHref}
-                aria-label="Konto"
-                className="flex items-center justify-center gap-2 px-2 py-2 text-foreground-2 hover:text-accent border border-background-4 rounded-lg transition-colors sm:px-3 lg:gap-[15px] lg:px-4"
-              >
-                <LucideUser size={16} />
-                <p className="text-[12px] max-sm:hidden">Konto</p>
-              </Link>
-              <button
-                type="button"
-                onClick={logout}
-                disabled={loggingOut}
-                aria-label="Wyloguj"
-                className="flex items-center justify-center gap-2 px-2 py-2 text-foreground-2 hover:text-accent border border-background-4 rounded-lg transition-colors disabled:opacity-60 disabled:cursor-not-allowed sm:px-3 lg:gap-[15px] lg:px-4"
-              >
-                <LucideLogOut size={16} />
-                <p className="text-[12px] max-sm:hidden">
-                  {loggingOut ? "Wylogowywanie..." : "Wyloguj się"}
-                </p>
-              </button>
+              <div className="relative" data-account-menu>
+                <button
+                  type="button"
+                  onClick={() => setAccountMenuOpen((prev) => !prev)}
+                  aria-label="Konto"
+                  className="flex items-center justify-center gap-2 px-2 py-2 text-foreground-2 hover:text-accent border border-background-4 rounded-lg transition-colors sm:px-3 lg:gap-[15px] lg:px-4"
+                >
+                  <LucideUser size={16} />
+                  <p className="text-[12px] max-sm:hidden">Konto</p>
+                </button>
+                {accountMenuOpen && (
+                  <div className="absolute right-0 mt-2 w-52 rounded-2xl border border-white/10 bg-background-2 py-1.5 shadow-2xl z-50">
+                    <Link
+                      href="/profil"
+                      onClick={() => setAccountMenuOpen(false)}
+                      className="flex items-center gap-3 px-4 py-2.5 text-sm text-foreground-2 hover:bg-background-3/60 hover:text-foreground transition-colors"
+                    >
+                      <LucideSettings size={15} className="shrink-0" />
+                      Ustawienia
+                    </Link>
+                    <Link
+                      href="/znajomi"
+                      onClick={() => setAccountMenuOpen(false)}
+                      className="flex items-center gap-3 px-4 py-2.5 text-sm text-foreground-2 hover:bg-background-3/60 hover:text-foreground transition-colors"
+                    >
+                      <LucideUsers size={15} className="shrink-0" />
+                      Znajomi
+                    </Link>
+                    <Link
+                      href="/wiadomosci"
+                      onClick={() => setAccountMenuOpen(false)}
+                      className="flex items-center gap-3 px-4 py-2.5 text-sm text-foreground-2 hover:bg-background-3/60 hover:text-foreground transition-colors"
+                    >
+                      <LucideMessageSquare size={15} className="shrink-0" />
+                      Wiadomości
+                    </Link>
+                    <div className="my-1.5 border-t border-white/10" />
+                    <button
+                      type="button"
+                      onClick={() => { setAccountMenuOpen(false); logout(); }}
+                      disabled={loggingOut}
+                      className="flex w-full items-center gap-3 px-4 py-2.5 text-sm text-foreground-2 hover:bg-background-3/60 hover:text-foreground transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                    >
+                      <LucideLogOut size={15} className="shrink-0" />
+                      {loggingOut ? "Wylogowywanie..." : "Wyloguj się"}
+                    </button>
+                  </div>
+                )}
+              </div>
             </>
           ) : showLoggedOut ? (
             <>
