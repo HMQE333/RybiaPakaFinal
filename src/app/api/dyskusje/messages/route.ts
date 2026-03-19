@@ -16,6 +16,7 @@ type AuthorShape = {
   nick: string | null;
   name: string | null;
   avatarUrl: string | null;
+  image?: string | null;
   role: string | null;
 };
 
@@ -134,7 +135,7 @@ const serializeCreatedMessage = (message: CreatedMessage) =>
     username: message.author?.username ?? null,
     nick: message.author?.nick ?? null,
     name: message.author?.name ?? null,
-    avatarUrl: message.author?.avatarUrl ?? null,
+    avatarUrl: message.author?.avatarUrl || message.author?.image || null,
     role: message.author?.role ?? null,
   });
 
@@ -185,11 +186,11 @@ export async function GET(req: NextRequest) {
         cm."hiddenAt"    AS "hiddenAt",
         cm."hiddenById"  AS "hiddenById",
         cm."authorId"    AS "authorId",
-        u."username"     AS "username",
-        u."nick"         AS "nick",
-        u."name"         AS "name",
-        u."avatarUrl"    AS "avatarUrl",
-        u."role"         AS "role"
+        u."username"                           AS "username",
+        u."nick"                               AS "nick",
+        u."name"                               AS "name",
+        COALESCE(u."avatarUrl", u."image")     AS "avatarUrl",
+        u."role"                               AS "role"
       FROM "ChannelMessage" cm
       LEFT JOIN "User" u ON u."id" = cm."authorId"
       WHERE cm."channelId" = ${channelId}
@@ -263,6 +264,7 @@ export async function POST(req: NextRequest) {
             nick: true,
             name: true,
             avatarUrl: true,
+            image: true,
             role: true,
           },
         },
@@ -294,6 +296,7 @@ export async function POST(req: NextRequest) {
                 nick: true,
                 name: true,
                 avatarUrl: true,
+                image: true,
                 role: true,
               },
             },
