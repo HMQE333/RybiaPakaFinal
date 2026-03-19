@@ -31,6 +31,9 @@ type SettingsUser = {
   email: string;
   bio: string | null;
   age: number | null;
+  ageRange: string | null;
+  pronouns: string | null;
+  bannerUrl: string | null;
   avatarUrl: string | null;
   regionId: string | null;
   methods: string[];
@@ -57,6 +60,29 @@ export default function ProfileSettingsForm({
   const [email] = useState(user.email ?? "");
   const [bio, setBio] = useState(user.bio ?? "");
   const [age, setAge] = useState(user.age ? String(user.age) : "");
+  const [ageRange, setAgeRange] = useState(user.ageRange ?? "");
+  const [pronouns, setPronouns] = useState(user.pronouns ?? "");
+
+  const initialBannerUrl = (user.bannerUrl ?? "").trim();
+  const [bannerSourceType, setBannerSourceType] = useState<"upload" | "preset" | null>(
+    initialBannerUrl.startsWith("preset:")
+      ? "preset"
+      : initialBannerUrl
+        ? "upload"
+        : null
+  );
+  const [bannerPresetId, setBannerPresetId] = useState(
+    initialBannerUrl.startsWith("preset:") ? initialBannerUrl.slice("preset:".length) : ""
+  );
+  const [bannerUploadBlob, setBannerUploadBlob] = useState<Blob | null>(null);
+  const [bannerFileName, setBannerFileName] = useState<string | null>(null);
+  const [bannerPreviewUrl, setBannerPreviewUrl] = useState(
+    initialBannerUrl.startsWith("preset:") ? "" : initialBannerUrl
+  );
+  const [bannerDropActive, setBannerDropActive] = useState(false);
+  const [bannerMessage, setBannerMessage] = useState<string | null>(null);
+  const bannerInitialRef = useRef(initialBannerUrl);
+
   const [avatarUrlInput, setAvatarUrlInput] = useState(
     isStoredAvatar ? "" : initialAvatarUrl
   );
@@ -116,7 +142,17 @@ export default function ProfileSettingsForm({
     () => regions.find((region) => region.id === regionId)?.name ?? "Nie ustawiono",
     [regions, regionId]
   );
-  const ageLabel = age.trim() ? `${age.trim()} lat` : "Nie ustawiono";
+  const ageLabel = ageRange.trim() ? ageRange.trim() : (age.trim() ? `${age.trim()} lat` : "Nie ustawiono");
+
+  const currentBannerStyle = useMemo(() => {
+    if (bannerSourceType === "preset" && bannerPresetId) {
+      return resolveBannerStyle(`preset:${bannerPresetId}`);
+    }
+    if (bannerSourceType === "upload" && bannerPreviewUrl) {
+      return resolveBannerStyle(bannerPreviewUrl);
+    }
+    return resolveBannerStyle(null);
+  }, [bannerSourceType, bannerPresetId, bannerPreviewUrl]);
   const previewMethods = selectedMethods.slice(0, 3);
   const extraMethods = Math.max(0, selectedMethods.length - previewMethods.length);
   const maxAvatarSizeMb = 2;
@@ -599,6 +635,56 @@ export default function ProfileSettingsForm({
     }
   };
 
+  const handleBannerFileSelect = async (file: File | null) => {
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      setBannerMessage("Wybierz plik graficzny.");
+      return;
+    }
+    const maxBannerMb = 5;
+    if (file.size > maxBannerMb * 1024 * 1024) {
+      setBannerMessage(`Maksymalny rozmiar pliku to ${maxBannerMb} MB.`);
+      return;
+    }
+    setBannerMessage(null);
+    setBannerUploadBlob(file);
+    setBannerFileName(file.name);
+    setBannerPresetId("");
+    setBannerSourceType("upload");
+    const objectUrl = URL.createObjectURL(file);
+    setBannerPreviewUrl(objectUrl);
+  };
+
+  const handleBannerPresetSelect = (id: string) => {
+    setBannerPresetId((prev) => (prev === id ? "" : id));
+    setBannerUploadBlob(null);
+    setBannerFileName(null);
+    setBannerPreviewUrl("");
+    setBannerSourceType(bannerPresetId === id ? null : "preset");
+    setBannerMessage(null);
+  };
+
+  const handleBannerRemove = async () => {
+    setBannerPresetId("");
+    setBannerUploadBlob(null);
+    setBannerFileName(null);
+    setBannerPreviewUrl("");
+    setBannerSourceType(null);
+    setBannerMessage(null);
+
+    if (bannerInitialRef.current) {
+      try {
+        await fetch("/api/profile/banner", {
+          method: "DELETE",
+          credentials: "include",
+        });
+        bannerInitialRef.current = "";
+      } catch {
+        // ignore
+      }
+    }
+  };
+
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     if (isSaving) return;
@@ -652,6 +738,69 @@ export default function ProfileSettingsForm({
         setStatusTone("error");
         setStatusMessage(message);
         setAvatarMessage(message);
+        setIsSaving(false);
+        return;
+      }
+    }
+
+    const bannerCurrentValue = bannerSourceType === "preset" && bannerPresetId
+      ? `preset:${bannerPresetId}`
+      : bannerSourceType === "upload" && (bannerUploadBlob ? "__new_upload__" : bannerPreviewUrl)
+        ? bannerUploadBlob ? "__new_upload__" : bannerPreviewUrl
+        : "";
+    const bannerChanged =
+      bannerUploadBlob !== null ||
+      bannerCurrentValue !== bannerInitialRef.current;
+
+    if (bannerChanged) {
+      setBannerMessage(null);
+      try {
+        if (bannerUploadBlob && bannerFileName) {
+          const fd = new FormData();
+          fd.append("file", new File([bannerUploadBlob], bannerFileName, { type: bannerUploadBlob.type || "image/jpeg" }));
+          const res = await fetch("/api/profile/banner", {
+            method: "POST",
+            credentials: "include",
+            body: fd,
+          });
+          if (!res.ok) {
+            const data = await res.json().catch(() => ({}));
+            const code = data?.error;
+            setBannerMessage(
+              code === "FILE_TOO_LARGE" ? "Plik banera jest za duży (max 5 MB)."
+              : code === "UNSUPPORTED_FILE_TYPE" ? "Nieobsługiwany format pliku banera."
+              : "Nie udało się zapisać banera."
+            );
+            setStatusTone("error");
+            setStatusMessage("Nie udało się zapisać banera.");
+            setIsSaving(false);
+            return;
+          }
+          const data = await res.json().catch(() => ({}));
+          bannerInitialRef.current = data?.bannerUrl ?? "";
+          setBannerUploadBlob(null);
+          setBannerFileName(null);
+        } else if (bannerSourceType === "preset" && bannerPresetId) {
+          const res = await fetch("/api/profile/banner", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            credentials: "include",
+            body: JSON.stringify({ presetId: bannerPresetId }),
+          });
+          if (!res.ok) {
+            setStatusTone("error");
+            setStatusMessage("Nie udało się zapisać banera.");
+            setIsSaving(false);
+            return;
+          }
+          bannerInitialRef.current = `preset:${bannerPresetId}`;
+        } else if (!bannerSourceType && bannerInitialRef.current) {
+          await fetch("/api/profile/banner", { method: "DELETE", credentials: "include" });
+          bannerInitialRef.current = "";
+        }
+      } catch {
+        setStatusTone("error");
+        setStatusMessage("Nie udało się zapisać banera.");
         setIsSaving(false);
         return;
       }
@@ -734,10 +883,14 @@ export default function ProfileSettingsForm({
     const payload: {
       bio?: string | null;
       age?: number | null;
+      ageRange?: string | null;
+      pronouns?: string | null;
       regionId?: string | null;
     } = {
       bio: trimmedBio || null,
       age: parsedAge !== null ? parsedAge : null,
+      ageRange: ageRange.trim() || null,
+      pronouns: pronouns.trim() || null,
       regionId: regionId || null,
     };
 
@@ -1049,22 +1202,36 @@ export default function ProfileSettingsForm({
                     </div>
                   )}
                 </label>
+                <div className="flex flex-col gap-2 text-sm text-foreground-2">
+                  Zakres wiekowy
+                  <div className="flex flex-wrap gap-2">
+                    {AGE_RANGES.map((range) => (
+                      <button
+                        key={range.value}
+                        type="button"
+                        onClick={() => setAgeRange((prev) => prev === range.value ? "" : range.value)}
+                        className={cn(
+                          "rounded-full border px-3 py-1 text-xs transition-colors",
+                          ageRange === range.value
+                            ? "border-accent/40 bg-accent/15 text-accent"
+                            : "border-white/10 bg-background-4/60 text-foreground-2 hover:border-white/20 hover:text-foreground"
+                        )}
+                      >
+                        {range.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
                 <label className="flex flex-col gap-2 text-sm text-foreground-2">
-                  Wiek
+                  Zaimki (opcjonalne)
                   <input
-                    type="number"
-                    min={minAge}
-                    max={maxAge}
-                    step={1}
-                    value={age}
-                    onChange={(event) => setAge(event.target.value)}
-                    placeholder="np. 28"
-                    inputMode="numeric"
+                    type="text"
+                    value={pronouns}
+                    onChange={(event) => setPronouns(event.target.value)}
+                    placeholder="np. on/jego"
+                    maxLength={40}
                     className={inputBase}
                   />
-                  <span className="text-xs text-foreground-2">
-                    Prosmy o podawanie wieku zgodnego z prawda.
-                  </span>
                 </label>
                 <label className="flex flex-col gap-2 text-sm text-foreground-2">
                   Województwo
@@ -1081,6 +1248,100 @@ export default function ProfileSettingsForm({
                     ))}
                   </select>
                 </label>
+              </div>
+            </section>
+
+            <section className={sectionCard}>
+              <div className="space-y-1">
+                <h3 className="text-sm font-semibold text-foreground">Baner profilu</h3>
+                <p className="text-xs text-foreground-2">
+                  Wybierz gotowy motyw lub prześlij własne zdjęcie.
+                </p>
+              </div>
+
+              <div className="mt-4 space-y-4">
+                {currentBannerStyle.type !== "none" && (
+                  <div
+                    className="relative h-20 w-full overflow-hidden rounded-xl border border-white/10"
+                    style={currentBannerStyle.type === "preset" ? { background: currentBannerStyle.gradient } : undefined}
+                  >
+                    {currentBannerStyle.type === "image" && currentBannerStyle.src && (
+                      <img
+                        src={currentBannerStyle.src}
+                        alt="Podgląd banera"
+                        className="h-full w-full object-cover"
+                      />
+                    )}
+                    <button
+                      type="button"
+                      onClick={handleBannerRemove}
+                      className="absolute right-2 top-2 rounded-full border border-white/20 bg-black/50 px-2 py-0.5 text-xs text-foreground-2 hover:text-foreground transition-colors"
+                    >
+                      Usuń
+                    </button>
+                  </div>
+                )}
+
+                <div>
+                  <p className="text-xs text-foreground-2 mb-2">Gotowe motywy</p>
+                  <div className="grid grid-cols-3 gap-2">
+                    {PRESET_BANNERS.map((preset) => (
+                      <button
+                        key={preset.id}
+                        type="button"
+                        onClick={() => handleBannerPresetSelect(preset.id)}
+                        className={cn(
+                          "relative h-12 overflow-hidden rounded-lg border transition-all",
+                          bannerPresetId === preset.id
+                            ? "border-accent ring-1 ring-accent"
+                            : "border-white/10 hover:border-white/30"
+                        )}
+                        style={{ background: preset.gradient }}
+                        title={preset.label}
+                      >
+                        <span className="absolute inset-0 grid place-items-center text-[10px] text-white/80 bg-black/20">
+                          {preset.label}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <p className="text-xs text-foreground-2 mb-2">Lub prześlij własny plik (max 5 MB)</p>
+                  <label
+                    className={cn(
+                      "flex cursor-pointer items-center gap-3 rounded-xl border border-white/10 bg-background-2/70 px-4 py-3 text-xs text-foreground-2 transition-colors hover:border-white/20 hover:text-foreground",
+                      bannerDropActive && "border-accent/60 bg-accent/10"
+                    )}
+                    onDragOver={(e) => { e.preventDefault(); setBannerDropActive(true); }}
+                    onDragLeave={() => setBannerDropActive(false)}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      setBannerDropActive(false);
+                      handleBannerFileSelect(e.dataTransfer.files?.[0] ?? null);
+                    }}
+                  >
+                    <span>Wybierz plik banera</span>
+                    {bannerFileName && <span className="ml-auto text-foreground-2 truncate max-w-[120px]">{bannerFileName}</span>}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => {
+                        const file = e.currentTarget.files?.[0] ?? null;
+                        e.currentTarget.value = "";
+                        handleBannerFileSelect(file);
+                      }}
+                    />
+                  </label>
+                </div>
+
+                {bannerMessage && (
+                  <div className="rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs text-red-200">
+                    {bannerMessage}
+                  </div>
+                )}
               </div>
             </section>
 
