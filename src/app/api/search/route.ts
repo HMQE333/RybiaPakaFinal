@@ -123,16 +123,16 @@ export async function GET(req: NextRequest) {
   const galleryRows = (await prisma.$queryRaw(
     Prisma.sql`
       SELECT
-        gi."id" as id,
-        gi."title" as title,
-        gi."description" as description,
-        gi."imageUrl" as imageUrl,
-        gi."category" as category,
-        gi."createdAt" as createdAt,
-        u."username" as username,
-        u."nick" as nick,
-        u."name" as name,
-        u."avatarUrl" as avatarUrl
+        gi."id"          AS "id",
+        gi."title"       AS "title",
+        gi."description" AS "description",
+        gi."imageUrl"    AS "imageUrl",
+        gi."category"    AS "category",
+        gi."createdAt"   AS "createdAt",
+        u."username"     AS "username",
+        u."nick"         AS "nick",
+        u."name"         AS "name",
+        u."avatarUrl"    AS "avatarUrl"
       FROM "GalleryItem" gi
       JOIN "User" u ON u."id" = gi."authorId"
       WHERE ${Prisma.join(galleryFilters, " AND ")}

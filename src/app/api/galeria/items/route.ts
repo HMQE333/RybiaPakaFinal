@@ -69,20 +69,20 @@ export async function GET(req: NextRequest) {
     (await prisma.$queryRaw(
       Prisma.sql`
         SELECT
-          gi."id" as id,
-          gi."title" as title,
-          gi."description" as description,
-          gi."imageUrl" as imageUrl,
-          gi."category" as category,
-          gi."createdAt" as createdAt,
-          u."id" as authorId,
-          u."username" as username,
-          u."nick" as nick,
-          u."name" as name,
-          u."avatarUrl" as avatarUrl,
-          COALESCE(l."likeCount", 0) as likes,
-          COALESCE(c."commentCount", 0) as comments,
-          CASE WHEN ul."userId" IS NULL THEN 0 ELSE 1 END as liked
+          gi."id"          AS "id",
+          gi."title"       AS "title",
+          gi."description" AS "description",
+          gi."imageUrl"    AS "imageUrl",
+          gi."category"    AS "category",
+          gi."createdAt"   AS "createdAt",
+          u."id"           AS "authorId",
+          u."username"     AS "username",
+          u."nick"         AS "nick",
+          u."name"         AS "name",
+          u."avatarUrl"    AS "avatarUrl",
+          COALESCE(l."likeCount", 0)                         AS "likes",
+          COALESCE(c."commentCount", 0)                      AS "comments",
+          CASE WHEN ul."userId" IS NULL THEN 0 ELSE 1 END    AS "liked"
         FROM "GalleryItem" gi
         JOIN "User" u ON u."id" = gi."authorId"
         LEFT JOIN (

@@ -99,17 +99,17 @@ export async function GET(req: NextRequest, { params }: RouteContext) {
   const loadRowsWithLikes = async () =>
     prisma.$queryRaw<CommentRow[]>`
       SELECT
-        gc."id" as id,
-        gc."content" as content,
-        gc."createdAt" as createdAt,
-        gc."parentId" as parentId,
-        u."id" as authorId,
-        u."username" as username,
-        u."nick" as nick,
-        u."name" as name,
-        u."avatarUrl" as avatarUrl,
-        COALESCE(l."likeCount", 0) as likes,
-        CASE WHEN ul."userId" IS NULL THEN 0 ELSE 1 END as liked
+        gc."id"        AS "id",
+        gc."content"   AS "content",
+        gc."createdAt" AS "createdAt",
+        gc."parentId"  AS "parentId",
+        u."id"         AS "authorId",
+        u."username"   AS "username",
+        u."nick"       AS "nick",
+        u."name"       AS "name",
+        u."avatarUrl"  AS "avatarUrl",
+        COALESCE(l."likeCount", 0)                         AS "likes",
+        CASE WHEN ul."userId" IS NULL THEN 0 ELSE 1 END    AS "liked"
       FROM "GalleryComment" gc
       LEFT JOIN "User" u ON u."id" = gc."authorId"
       LEFT JOIN (
@@ -126,17 +126,17 @@ export async function GET(req: NextRequest, { params }: RouteContext) {
   const loadRowsWithoutLikes = async () =>
     prisma.$queryRaw<CommentRow[]>`
       SELECT
-        gc."id" as id,
-        gc."content" as content,
-        gc."createdAt" as createdAt,
-        gc."parentId" as parentId,
-        u."id" as authorId,
-        u."username" as username,
-        u."nick" as nick,
-        u."name" as name,
-        u."avatarUrl" as avatarUrl,
-        0 as likes,
-        0 as liked
+        gc."id"        AS "id",
+        gc."content"   AS "content",
+        gc."createdAt" AS "createdAt",
+        gc."parentId"  AS "parentId",
+        u."id"         AS "authorId",
+        u."username"   AS "username",
+        u."nick"       AS "nick",
+        u."name"       AS "name",
+        u."avatarUrl"  AS "avatarUrl",
+        0 AS "likes",
+        0 AS "liked"
       FROM "GalleryComment" gc
       LEFT JOIN "User" u ON u."id" = gc."authorId"
       WHERE gc."itemId" = ${itemId} AND gc."deletedAt" IS NULL
@@ -146,13 +146,13 @@ export async function GET(req: NextRequest, { params }: RouteContext) {
   const loadRowsMinimalWithTimestamp = async () =>
     prisma.$queryRaw<CommentRow[]>`
       SELECT
-        gc."id" as id,
-        gc."content" as content,
-        gc."createdAt" as createdAt,
-        NULL as parentId,
-        0 as authorId,
-        0 as likes,
-        0 as liked
+        gc."id"        AS "id",
+        gc."content"   AS "content",
+        gc."createdAt" AS "createdAt",
+        NULL           AS "parentId",
+        0              AS "authorId",
+        0              AS "likes",
+        0              AS "liked"
       FROM "GalleryComment" gc
       WHERE gc."itemId" = ${itemId} AND gc."deletedAt" IS NULL
       ORDER BY gc."createdAt" ASC;
@@ -161,13 +161,13 @@ export async function GET(req: NextRequest, { params }: RouteContext) {
   const loadRowsMinimal = async () =>
     prisma.$queryRaw<CommentRow[]>`
       SELECT
-        gc."id" as id,
-        gc."content" as content,
-        NULL as createdAt,
-        NULL as parentId,
-        0 as authorId,
-        0 as likes,
-        0 as liked
+        gc."id"      AS "id",
+        gc."content" AS "content",
+        NULL         AS "createdAt",
+        NULL         AS "parentId",
+        0            AS "authorId",
+        0            AS "likes",
+        0            AS "liked"
       FROM "GalleryComment" gc
       WHERE gc."itemId" = ${itemId} AND gc."deletedAt" IS NULL
       ORDER BY gc."rowid" ASC;

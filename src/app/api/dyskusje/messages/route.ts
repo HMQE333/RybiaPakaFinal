@@ -51,7 +51,7 @@ async function resolveSessionViewer(req: NextRequest) {
     if (Number.isInteger(parsed) && parsed > 0) {
       const viewer = await prisma.user.findUnique({
         where: { id: parsed },
-        select: { id: true, role: true },
+        select: { id: true, role: true, username: true, nick: true, name: true },
       });
       if (viewer) {
         return viewer;
@@ -62,6 +62,14 @@ async function resolveSessionViewer(req: NextRequest) {
   }
 
   return null;
+}
+
+function resolveViewerDisplayName(viewer: {
+  username?: string | null;
+  nick?: string | null;
+  name?: string | null;
+}) {
+  return viewer.username || viewer.nick || viewer.name || null;
 }
 
 function isAdminChannel(channelId: string) {
@@ -169,19 +177,19 @@ export async function GET(req: NextRequest) {
   const rows = await prisma.$queryRaw<ChannelMessageRow[]>(
     Prisma.sql`
       SELECT
-        cm."id" as id,
-        cm."channelId" as channelId,
-        cm."text" as text,
-        cm."createdAt" as createdAt,
-        cm."authorName" as authorName,
-        cm."hiddenAt" as hiddenAt,
-        cm."hiddenById" as hiddenById,
-        cm."authorId" as authorId,
-        u."username" as username,
-        u."nick" as nick,
-        u."name" as name,
-        u."avatarUrl" as avatarUrl,
-        u."role" as role
+        cm."id"          AS "id",
+        cm."channelId"   AS "channelId",
+        cm."text"        AS "text",
+        cm."createdAt"   AS "createdAt",
+        cm."authorName"  AS "authorName",
+        cm."hiddenAt"    AS "hiddenAt",
+        cm."hiddenById"  AS "hiddenById",
+        cm."authorId"    AS "authorId",
+        u."username"     AS "username",
+        u."nick"         AS "nick",
+        u."name"         AS "name",
+        u."avatarUrl"    AS "avatarUrl",
+        u."role"         AS "role"
       FROM "ChannelMessage" cm
       LEFT JOIN "User" u ON u."id" = cm."authorId"
       WHERE cm."channelId" = ${channelId}
@@ -245,6 +253,7 @@ export async function POST(req: NextRequest) {
         channelId,
         text: safeText,
         authorId: viewer.id,
+        authorName: resolveViewerDisplayName(viewer),
       },
       include: {
         author: {
@@ -272,10 +281,11 @@ export async function POST(req: NextRequest) {
       try {
         const retry = await prisma.channelMessage.create({
           data: {
-          channelId,
-          text: safeText,
-          authorId: viewer.id,
-        },
+            channelId,
+            text: safeText,
+            authorId: viewer.id,
+            authorName: resolveViewerDisplayName(viewer),
+          },
           include: {
             author: {
               select: {
