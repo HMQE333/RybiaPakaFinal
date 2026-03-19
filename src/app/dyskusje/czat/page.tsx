@@ -39,67 +39,62 @@ const channelSummaries: Record<string, string> = {
   administracja: "Tylko administracja: moderacja i decyzje.",
 };
 
-const CUSTOM_EMOJI_FILES = [
-  "$$$.png",
-  "69.png",
-  "Agent.png",
-  "Agresywny.png",
-  "Amur.png",
-  "Brak Głosu.png",
-  "Bruh.png",
-  "Dobrze.png",
-  "Drama Alert.png",
-  "Dziewczynka.png",
-  "Garbusek.png",
-  "Gorąco.png",
-  "Głodny.png",
-  "Hipnoza.png",
-  "Karp.png",
-  "Klaun.png",
-  "Kochający.png",
-  "Krab.png",
-  "Krewetka.png",
-  "Król.png",
-  "Kupka.png",
-  "Leszcz.png",
-  "LGBT.png",
-  "Lin.png",
-  "Mistrz.png",
-  "Muszkieter.png",
-  "Myślący.png",
-  "Napad.png",
-  "Niewyspany.png",
-  "Okonek.png",
-  "Pistolet.png",
-  "Podbite oko.png",
-  "Porażka.png",
-  "Pęka ze śmiechu.png",
-  "Płoć.png",
-  "Sandacz.png",
-  "Serduszko.png",
-  "SIGMA.png",
-  "Smutny.png",
-  "Sum.png",
-  "Szczupak.png",
-  "Tołpyga.png",
-  "Uśmiechnięty.png",
-  "Wkurzony.png",
-  "Wymiotujący.png",
-  "Zachwycony.png",
-  "Zadowolony.png",
-  "Zaskoczenie.png",
-  "Załamany.png",
-  "Zdenerwowany.png",
-  "Zestresowany.png",
-  "Znudzony.png",
-  "Śmiech.png",
-  "Źle.png",
+const CUSTOM_EMOJIS_DEF: { file: string; label: string }[] = [
+  { file: "$$$.png",              label: "$$$" },
+  { file: "69.png",               label: "69" },
+  { file: "Agent.png",            label: "Agent" },
+  { file: "Agresywny.png",        label: "Agresywny" },
+  { file: "Amur.png",             label: "Amur" },
+  { file: "brak_glosu.png",       label: "Brak Głosu" },
+  { file: "Bruh.png",             label: "Bruh" },
+  { file: "Dobrze.png",           label: "Dobrze" },
+  { file: "drama_alert.png",      label: "Drama Alert" },
+  { file: "Dziewczynka.png",      label: "Dziewczynka" },
+  { file: "Garbusek.png",         label: "Garbusek" },
+  { file: "goraco.png",           label: "Gorąco" },
+  { file: "glodny.png",           label: "Głodny" },
+  { file: "Hipnoza.png",          label: "Hipnoza" },
+  { file: "Karp.png",             label: "Karp" },
+  { file: "Klaun.png",            label: "Klaun" },
+  { file: "kochajacy.png",        label: "Kochający" },
+  { file: "Krab.png",             label: "Krab" },
+  { file: "Krewetka.png",         label: "Krewetka" },
+  { file: "krol.png",             label: "Król" },
+  { file: "Kupka.png",            label: "Kupka" },
+  { file: "Leszcz.png",           label: "Leszcz" },
+  { file: "LGBT.png",             label: "LGBT" },
+  { file: "Lin.png",              label: "Lin" },
+  { file: "Mistrz.png",           label: "Mistrz" },
+  { file: "Muszkieter.png",       label: "Muszkieter" },
+  { file: "myslacy.png",          label: "Myślący" },
+  { file: "Napad.png",            label: "Napad" },
+  { file: "Niewyspany.png",       label: "Niewyspany" },
+  { file: "Okonek.png",           label: "Okonek" },
+  { file: "Pistolet.png",         label: "Pistolet" },
+  { file: "podbite_oko.png",      label: "Podbite oko" },
+  { file: "porazka.png",          label: "Porażka" },
+  { file: "peka_ze_smiechu.png",  label: "Pęka ze śmiechu" },
+  { file: "ploc.png",             label: "Płoć" },
+  { file: "Sandacz.png",          label: "Sandacz" },
+  { file: "Serduszko.png",        label: "Serduszko" },
+  { file: "SIGMA.png",            label: "SIGMA" },
+  { file: "Smutny.png",           label: "Smutny" },
+  { file: "Sum.png",              label: "Sum" },
+  { file: "Szczupak.png",         label: "Szczupak" },
+  { file: "tolpyga.png",          label: "Tołpyga" },
+  { file: "usmiechniety.png",     label: "Uśmiechnięty" },
+  { file: "Wkurzony.png",         label: "Wkurzony" },
+  { file: "wymiotujacy.png",      label: "Wymiotujący" },
+  { file: "Zachwycony.png",       label: "Zachwycony" },
+  { file: "Zadowolony.png",       label: "Zadowolony" },
+  { file: "Zaskoczenie.png",      label: "Zaskoczenie" },
+  { file: "zalamany.png",         label: "Załamany" },
+  { file: "Zdenerwowany.png",     label: "Zdenerwowany" },
+  { file: "Zestresowany.png",     label: "Zestresowany" },
+  { file: "Znudzony.png",         label: "Znudzony" },
+  { file: "smiech.png",           label: "Śmiech" },
+  { file: "zle.png",              label: "Źle" },
 ];
-
-const humanizeEmojiName = (fileName: string) => {
-  const base = fileName.replace(/\.[^/.]+$/, "");
-  return base.replace(/[_-]+/g, " ").replace(/\s+/g, " ").trim();
-};
 
 const getLegacyEmojiId = (fileName: string) => {
   const base = fileName.replace(/\.[^/.]+$/, "");
@@ -115,16 +110,15 @@ const slugifyEmojiLabel = (label: string) =>
     .replace(/[^a-z0-9]+/g, "_")
     .replace(/^_+|_+$/g, "");
 
-const CUSTOM_EMOJIS: CustomEmoji[] = CUSTOM_EMOJI_FILES.map(
-  (fileName, index) => {
-    const label = humanizeEmojiName(fileName);
+const CUSTOM_EMOJIS: CustomEmoji[] = CUSTOM_EMOJIS_DEF.map(
+  ({ file, label }, index) => {
     const slug = slugifyEmojiLabel(label) || `emotka_${index + 1}`;
     return {
       id: index + 1,
       label,
-      src: `/emojis/${encodeURIComponent(fileName)}`,
+      src: `/emojis/${file}`,
       code: `:${slug}:`,
-      legacyId: getLegacyEmojiId(fileName),
+      legacyId: getLegacyEmojiId(file),
     };
   }
 );
