@@ -51,7 +51,7 @@ export default function ChatMessageList({
   return (
     <div
       ref={listRef}
-      className="custom-scrollbar relative flex-1 min-h-0 space-y-4 overflow-y-auto px-5 py-4"
+      className="custom-scrollbar relative flex-1 min-h-0 space-y-4 overflow-y-auto px-5 py-4 pb-6"
     >
       {!loading && hasOlder && (
         <div className="flex justify-center pb-2">

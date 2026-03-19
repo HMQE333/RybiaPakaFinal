@@ -638,6 +638,15 @@ function ChatPageInner() {
     }
   }, [loading, scrollToBottom]);
 
+  const justSentRef = useRef(false);
+
+  useEffect(() => {
+    if (justSentRef.current) {
+      justSentRef.current = false;
+      scrollToBottom();
+    }
+  }, [messages.length, scrollToBottom]);
+
   const toggleRevealMessage = useCallback((messageId: string) => {
     setRevealedMessageIds((prev) => ({
       ...prev,
@@ -703,12 +712,12 @@ function ChatPageInner() {
           },
         } as ChannelMessage;
 
+        justSentRef.current = true;
         setMessages((prev) => [...prev, normalized]);
         setMessageInput("");
         if (composerRef.current) {
           composerRef.current.innerHTML = "";
         }
-        scrollToBottom();
         emitMissionEvent("discussion");
       }
     } catch {
@@ -716,7 +725,7 @@ function ChatPageInner() {
     } finally {
       setSending(false);
     }
-  }, [accessDenied, activeChannel, isAuthenticated, readComposerValue, scrollToBottom, sending]);
+  }, [accessDenied, activeChannel, isAuthenticated, readComposerValue, sending]);
 
   const handleHideMessage = useCallback(
     async (message: ChannelMessage, shouldHide: boolean) => {
