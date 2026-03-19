@@ -708,6 +708,7 @@ function ChatPageInner() {
         if (composerRef.current) {
           composerRef.current.innerHTML = "";
         }
+        scrollToBottom();
         emitMissionEvent("discussion");
       }
     } catch {
@@ -715,7 +716,7 @@ function ChatPageInner() {
     } finally {
       setSending(false);
     }
-  }, [accessDenied, activeChannel, isAuthenticated, readComposerValue, sending]);
+  }, [accessDenied, activeChannel, isAuthenticated, readComposerValue, scrollToBottom, sending]);
 
   const handleHideMessage = useCallback(
     async (message: ChannelMessage, shouldHide: boolean) => {
