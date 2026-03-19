@@ -12,6 +12,7 @@ import {
   UserBio,
 } from "@/components/Profile";
 import UploadImage from "@/components/UploadImage";
+import { resolveBannerStyle } from "@/lib/presetBanners";
 
 import type { Profile } from "@/lib/profile";
 
@@ -38,15 +39,33 @@ export default function ProfileView({
 }: ProfileViewProps) {
   const displayName = user.username?.trim() || "Użytkownik";
   const voivodeshipLabel = user.voivodeship ?? "Nie podano";
-  const ageLabel = user.age ? `${user.age} lat` : "Nie podano";
+  const ageLabel = user.ageRange ? user.ageRange : (user.age ? `${user.age} lat` : "Nie podano");
   const methods = user.methods ?? [];
   const hasMethods = methods.length > 0;
   const hasRank = Boolean(user.rank && user.rank.trim().length > 0);
   const showSocialActions = !isOwnProfile;
 
+  const banner = resolveBannerStyle(user.bannerUrl);
+
   return (
     <div className="flex w-full flex-col gap-6">
       <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-background-3/90 via-background-2/90 to-background-3/80 shadow-[0_12px_50px_rgba(0,0,0,0.35)]">
+        {banner.type === "preset" && (
+          <div
+            className="absolute inset-x-0 top-0 h-24 sm:h-28"
+            style={{ background: banner.gradient }}
+            aria-hidden
+          />
+        )}
+        {banner.type === "image" && banner.src && (
+          <div className="absolute inset-x-0 top-0 h-24 sm:h-28 overflow-hidden">
+            <img
+              src={banner.src}
+              alt="Baner profilu"
+              className="w-full h-full object-cover"
+            />
+          </div>
+        )}
         <div className="absolute inset-0 opacity-60 bg-[radial-gradient(circle_at_15%_20%,rgba(0,206,0,0.12),transparent_45%)]" />
         <div className="absolute inset-0 opacity-50 bg-[radial-gradient(circle_at_85%_15%,rgba(0,150,255,0.12),transparent_50%)]" />
         {isOwnProfile && (
@@ -58,7 +77,7 @@ export default function ProfileView({
             <Settings size={18} />
           </Link>
         )}
-        <div className="relative p-6 sm:p-7">
+        <div className={`relative p-6 sm:p-7 ${banner.type !== "none" ? "pt-20 sm:pt-24" : ""}`}>
           <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
             <div className="flex items-start gap-4">
               <div className="relative h-24 w-24 sm:h-28 sm:w-28 rounded-full overflow-hidden bg-background-2/70 border border-white/10 shadow-[0_0_25px_rgba(0,0,0,0.35)]">
@@ -83,6 +102,11 @@ export default function ProfileView({
                   </h1>
                   {hasRank && <RankBadge rank={user.rank} />}
                 </div>
+                {user.pronouns && (
+                  <div className="mt-0.5 text-xs text-foreground-2 italic">
+                    {user.pronouns}
+                  </div>
+                )}
                 <div className="mt-1 text-sm text-foreground-2">
                   Dołączono: {formatJoined(user.joinedAt)}
                 </div>

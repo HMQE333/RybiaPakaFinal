@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { saveBannerImage } from "@/lib/localUpload";
 import { auth } from "@/lib/auth";
+import { PRESET_BANNER_GRADIENTS } from "@/lib/presetBanners";
 
 export async function POST(req: NextRequest) {
   const session = await auth.api.getSession({ headers: req.headers });
@@ -36,6 +37,18 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: "FILE_TOO_LARGE" }, { status: 400 });
       }
       return NextResponse.json({ error: "UPLOAD_FAILED" }, { status: 502 });
+    }
+  } else if (contentType.includes("application/json")) {
+    const body = await req.json().catch(() => ({}));
+    const presetId = typeof body.presetId === "string" ? body.presetId.trim() : "";
+
+    if (presetId) {
+      if (!PRESET_BANNER_GRADIENTS[presetId]) {
+        return NextResponse.json({ error: "INVALID_PRESET" }, { status: 400 });
+      }
+      newBannerUrl = `preset:${presetId}`;
+    } else {
+      return NextResponse.json({ error: "INVALID_REQUEST" }, { status: 400 });
     }
   } else {
     return NextResponse.json({ error: "INVALID_REQUEST" }, { status: 400 });

@@ -7,6 +7,9 @@ export type Profile = {
   id: number;
   username: string;
   age: number | null;
+  ageRange: string | null;
+  pronouns: string | null;
+  bannerUrl: string | null;
   avatar?: string;
   methods: string[];
   postsCount: number;
@@ -62,6 +65,9 @@ async function buildProfile(user: UserWithRelations): Promise<Profile> {
     id: user.id,
     username: user.username ?? user.nick ?? user.name ?? "",
     age: user.age ?? null,
+    ageRange: (user as any).ageRange ?? null,
+    pronouns: (user as any).pronouns ?? null,
+    bannerUrl: (user as any).bannerUrl ?? null,
     avatar: avatarUrl || undefined,
     methods,
     postsCount,

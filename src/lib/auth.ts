@@ -205,6 +205,9 @@ export const auth = betterAuth({
       avatarUrl: createFieldAttribute("string", { required: false }),
       bio: createFieldAttribute("string", { required: false }),
       age: createFieldAttribute("number", { required: false }),
+      ageRange: createFieldAttribute("string", { required: false }),
+      pronouns: createFieldAttribute("string", { required: false }),
+      bannerUrl: createFieldAttribute("string", { required: false }),
       joinedAt: createFieldAttribute("date", {
         required: false,
         defaultValue: () => new Date(),
