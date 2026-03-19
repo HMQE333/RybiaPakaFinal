@@ -56,7 +56,12 @@ export async function dataRpc<T>(
     timeoutMs
   );
 
-  const json = (await response.json()) as { ok?: boolean; result?: T; error?: string };
+  let json: { ok?: boolean; result?: T; error?: string };
+  try {
+    json = (await response.json()) as { ok?: boolean; result?: T; error?: string };
+  } catch {
+    throw new Error("DATA_RPC_INVALID_JSON");
+  }
   if (!json?.ok) {
     throw new Error(json?.error || "DATA_RPC_FAILED");
   }

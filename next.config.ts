@@ -78,6 +78,7 @@ const cacheHeaders = [
 
 const nextConfig: NextConfig = {
   devIndicators: false,
+  allowedDevOrigins: ["*.replit.dev", "*.repl.co"],
   images: {
     formats: ["image/avif", "image/webp"],
   },

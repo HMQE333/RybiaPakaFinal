@@ -79,6 +79,9 @@ export async function POST(
   }
 
   const reason = String(body?.reason ?? "").trim();
+  if (reason.length > 500) {
+    return jsonError("REASON_TOO_LONG", 422);
+  }
   const durationMinutes = Number(body?.durationMinutes ?? 0);
 
   if (viewer.id === userId) {

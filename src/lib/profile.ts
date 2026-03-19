@@ -48,11 +48,11 @@ async function buildProfile(user: UserWithRelations): Promise<Profile> {
     const fallback = getRandomDefaultAvatar();
     try {
       await prisma.user.update({
-        where: { id: user.id },
+        where: { id: user.id, avatarUrl: null },
         data: { avatarUrl: fallback },
       });
-    } catch {
-      // Keep fallback for response even if update fails.
+    } catch (err) {
+      console.error("[ensureAvatarUrl] Failed to persist default avatar for user", user.id, err);
     }
     return fallback;
   };
