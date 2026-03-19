@@ -82,6 +82,7 @@ export default function ProfileSettingsForm({
   const [bannerDropActive, setBannerDropActive] = useState(false);
   const [bannerMessage, setBannerMessage] = useState<string | null>(null);
   const bannerInitialRef = useRef(initialBannerUrl);
+  const bannerBlobUrlRef = useRef<string | null>(null);
 
   const [avatarUrlInput, setAvatarUrlInput] = useState(
     isStoredAvatar ? "" : initialAvatarUrl
@@ -213,6 +214,15 @@ export default function ProfileSettingsForm({
       }
     };
   }, [avatarSourceUrl]);
+
+  useEffect(() => {
+    return () => {
+      if (bannerBlobUrlRef.current) {
+        URL.revokeObjectURL(bannerBlobUrlRef.current);
+        bannerBlobUrlRef.current = null;
+      }
+    };
+  }, []);
 
   useEffect(() => {
     let active = true;
@@ -646,16 +656,25 @@ export default function ProfileSettingsForm({
       setBannerMessage(`Maksymalny rozmiar pliku to ${maxBannerMb} MB.`);
       return;
     }
+    if (bannerBlobUrlRef.current) {
+      URL.revokeObjectURL(bannerBlobUrlRef.current);
+      bannerBlobUrlRef.current = null;
+    }
     setBannerMessage(null);
     setBannerUploadBlob(file);
     setBannerFileName(file.name);
     setBannerPresetId("");
     setBannerSourceType("upload");
     const objectUrl = URL.createObjectURL(file);
+    bannerBlobUrlRef.current = objectUrl;
     setBannerPreviewUrl(objectUrl);
   };
 
   const handleBannerPresetSelect = (id: string) => {
+    if (bannerBlobUrlRef.current) {
+      URL.revokeObjectURL(bannerBlobUrlRef.current);
+      bannerBlobUrlRef.current = null;
+    }
     setBannerPresetId((prev) => (prev === id ? "" : id));
     setBannerUploadBlob(null);
     setBannerFileName(null);
@@ -665,6 +684,10 @@ export default function ProfileSettingsForm({
   };
 
   const handleBannerRemove = () => {
+    if (bannerBlobUrlRef.current) {
+      URL.revokeObjectURL(bannerBlobUrlRef.current);
+      bannerBlobUrlRef.current = null;
+    }
     setBannerPresetId("");
     setBannerUploadBlob(null);
     setBannerFileName(null);
@@ -765,6 +788,10 @@ export default function ProfileSettingsForm({
         resolvedBannerUrl = data?.bannerUrl ?? null;
         setBannerUploadBlob(null);
         setBannerFileName(null);
+        if (bannerBlobUrlRef.current) {
+          URL.revokeObjectURL(bannerBlobUrlRef.current);
+          bannerBlobUrlRef.current = null;
+        }
         if (resolvedBannerUrl) {
           setBannerPreviewUrl(resolvedBannerUrl);
           setBannerSourceType("upload");

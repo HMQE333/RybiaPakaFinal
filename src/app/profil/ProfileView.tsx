@@ -39,7 +39,7 @@ export default function ProfileView({
 }: ProfileViewProps) {
   const displayName = user.username?.trim() || "Użytkownik";
   const voivodeshipLabel = user.voivodeship ?? "Nie podano";
-  const ageLabel = user.ageRange ? user.ageRange : (user.age ? `${user.age} lat` : "Nie podano");
+  const ageLabel = user.ageRange ? user.ageRange : "Nie podano";
   const methods = user.methods ?? [];
   const hasMethods = methods.length > 0;
   const hasRank = Boolean(user.rank && user.rank.trim().length > 0);
