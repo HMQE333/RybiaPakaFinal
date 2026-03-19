@@ -10,7 +10,6 @@ import {
   useRef,
   useState,
 } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 
@@ -123,7 +122,7 @@ const CUSTOM_EMOJIS: CustomEmoji[] = CUSTOM_EMOJI_FILES.map(
     return {
       id: index + 1,
       label,
-      src: `/emojis/${fileName}`,
+      src: `/emojis/${encodeURIComponent(fileName)}`,
       code: `:${slug}:`,
       legacyId: getLegacyEmojiId(fileName),
     };
@@ -308,7 +307,8 @@ function ChatPageInner() {
         if (emoji) {
           parts.push(
             <span key={`emoji-${start}`} className={emojiWrapperClass}>
-              <Image
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
                 src={emoji.src}
                 alt={emoji.label}
                 width={emojiSize}

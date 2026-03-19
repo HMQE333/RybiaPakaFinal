@@ -1,7 +1,6 @@
 "use client";
 
 import type { KeyboardEvent, RefObject } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { MessageCircle, Smile } from "lucide-react";
 
@@ -83,7 +82,8 @@ export default function ChatComposer({
                       onClick={() => insertEmoji(emoji)}
                       className="group flex w-full min-h-[96px] flex-col items-center gap-2 rounded-xl border border-white/10 bg-background-4/70 px-2 py-3 text-foreground transition hover:border-accent/40 hover:bg-background-4"
                     >
-                      <Image
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
                         src={emoji.src}
                         alt={emoji.label}
                         width={32}
