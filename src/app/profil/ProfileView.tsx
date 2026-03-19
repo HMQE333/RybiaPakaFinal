@@ -46,81 +46,103 @@ export default function ProfileView({
   const showSocialActions = !isOwnProfile;
 
   const banner = resolveBannerStyle(user.bannerUrl);
+  const hasBanner = banner.type !== "none";
 
   return (
     <div className="flex w-full flex-col gap-6">
-      <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-background-3/90 via-background-2/90 to-background-3/80 shadow-[0_12px_50px_rgba(0,0,0,0.35)]">
-        {banner.type === "preset" && (
-          <div
-            className="absolute inset-x-0 top-0 h-24 sm:h-28"
-            style={{ background: banner.gradient }}
-            aria-hidden
-          />
-        )}
-        {banner.type === "image" && banner.src && (
-          <div className="absolute inset-x-0 top-0 h-24 sm:h-28 overflow-hidden">
-            <img
-              src={banner.src}
-              alt="Baner profilu"
-              className="w-full h-full object-cover"
+      <div className="relative rounded-3xl border border-white/10 bg-gradient-to-br from-background-3/90 via-background-2/90 to-background-3/80 shadow-[0_12px_50px_rgba(0,0,0,0.35)] overflow-hidden">
+
+        {/* ── Banner section ── */}
+        <div className={`relative ${hasBanner ? "h-36 sm:h-44" : "h-20 sm:h-24"}`}>
+          {banner.type === "preset" && (
+            <div
+              className="absolute inset-0"
+              style={{ background: banner.gradient }}
+              aria-hidden
             />
+          )}
+          {banner.type === "image" && banner.src && (
+            <div className="absolute inset-0">
+              <img
+                src={banner.src}
+                alt="Baner profilu"
+                className="w-full h-full object-cover"
+              />
+            </div>
+          )}
+          {!hasBanner && (
+            <div className="absolute inset-0 bg-gradient-to-br from-background-3 via-background-2 to-background-3" />
+          )}
+          <div className="absolute inset-0 opacity-60 bg-[radial-gradient(circle_at_15%_20%,rgba(0,206,0,0.12),transparent_45%)]" aria-hidden />
+          <div className="absolute inset-0 opacity-50 bg-[radial-gradient(circle_at_85%_15%,rgba(0,150,255,0.12),transparent_50%)]" aria-hidden />
+
+          {isOwnProfile && (
+            <Link
+              href="/profil/ustawienia"
+              className="absolute right-4 top-4 z-10 flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-black/40 backdrop-blur-sm text-white/80 transition hover:border-accent/50 hover:text-accent hover:bg-black/60"
+              aria-label="Ustawienia profilu"
+            >
+              <Settings size={16} />
+            </Link>
+          )}
+        </div>
+
+        {/* ── Content area ── */}
+        <div className="px-6 pb-6 sm:px-7 sm:pb-7">
+
+          {/* Avatar row — negative margin pulls avatar up over the banner */}
+          <div className="flex items-end justify-between -mt-12 sm:-mt-14 mb-5">
+            <div
+              className="relative h-24 w-24 sm:h-28 sm:w-28 shrink-0 rounded-full overflow-hidden
+                         ring-4 ring-background-3
+                         bg-background-3 shadow-[0_4px_24px_rgba(0,0,0,0.45)]"
+            >
+              <UploadImage
+                src={user.avatar ?? "/artwork/404_user.png"}
+                alt={`Avatar ${displayName}`}
+                loading="lazy"
+                decoding="async"
+                className="h-full w-full object-cover"
+                fallbackSrc="/artwork/404_user.png"
+              />
+              <OnlineStatusDot
+                status={user.status}
+                className="absolute bottom-1.5 right-1.5"
+              />
+            </div>
+
+            {showSocialActions && (
+              <div className="flex flex-wrap items-center gap-2 sm:gap-3 pb-1">
+                <AddFriendButton />
+                <SendMessageButton />
+                <ReportButton />
+              </div>
+            )}
           </div>
-        )}
-        <div className="absolute inset-0 opacity-60 bg-[radial-gradient(circle_at_15%_20%,rgba(0,206,0,0.12),transparent_45%)]" />
-        <div className="absolute inset-0 opacity-50 bg-[radial-gradient(circle_at_85%_15%,rgba(0,150,255,0.12),transparent_50%)]" />
-        {isOwnProfile && (
-          <Link
-            href="/profil/ustawienia"
-            className="absolute right-5 top-5 z-10 flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-background-2/80 text-foreground-2 transition hover:border-accent/40 hover:text-accent"
-            aria-label="Ustawienia profilu"
-          >
-            <Settings size={18} />
-          </Link>
-        )}
-        <div className={`relative p-6 sm:p-7 ${banner.type !== "none" ? "pt-20 sm:pt-24" : ""}`}>
-          <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
-            <div className="flex items-start gap-4">
-              <div className="relative h-24 w-24 sm:h-28 sm:w-28 rounded-full overflow-hidden bg-background-2/70 border border-white/10 shadow-[0_0_25px_rgba(0,0,0,0.35)]">
-                <UploadImage
-                  src={user.avatar ?? "/artwork/404_user.png"}
-                  alt={`Avatar ${displayName}`}
-                  loading="lazy"
-                  decoding="async"
-                  className="h-full w-full object-cover"
-                  fallbackSrc="/artwork/404_user.png"
-                />
-                <OnlineStatusDot
-                  status={user.status}
-                  className="absolute bottom-1 right-1"
-                />
-              </div>
 
-              <div className="min-w-0">
-                <div className="flex flex-wrap items-center gap-2">
-                  <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground truncate max-w-[70vw]">
-                    <span className="text-accent">@{displayName}</span>
-                  </h1>
-                  {hasRank && <RankBadge rank={user.rank} />}
-                </div>
-                {user.pronouns && (
-                  <div className="mt-0.5 text-xs text-foreground-2 italic">
-                    {user.pronouns}
-                  </div>
-                )}
-                <div className="mt-1 text-sm text-foreground-2">
-                  Dołączono: {formatJoined(user.joinedAt)}
-                </div>
-                <div className="mt-3 max-w-2xl">
-                  <UserBio bio={user.bio} />
-                </div>
-              </div>
-            </div>
+          {/* Username + rank */}
+          <div className="flex flex-wrap items-center gap-2 leading-none">
+            <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight truncate max-w-[70vw]">
+              <span className="text-accent">@{displayName}</span>
+            </h1>
+            {hasRank && <RankBadge rank={user.rank} />}
+          </div>
 
-            <div className="flex flex-wrap items-center gap-2 sm:gap-3 lg:justify-end">
-              {showSocialActions && <AddFriendButton />}
-              {showSocialActions && <SendMessageButton />}
-              {showSocialActions && <ReportButton />}
-            </div>
+          {/* Pronouns */}
+          {user.pronouns && (
+            <p className="mt-1 text-xs text-foreground-2 italic">
+              {user.pronouns}
+            </p>
+          )}
+
+          {/* Join date */}
+          <p className="mt-1.5 text-sm text-foreground-2">
+            Dołączono: {formatJoined(user.joinedAt)}
+          </p>
+
+          {/* Bio */}
+          <div className="mt-3 max-w-2xl">
+            <UserBio bio={user.bio} />
           </div>
         </div>
       </div>
