@@ -23,6 +23,7 @@ type ThreadAuthor = {
   nick: string | null;
   name: string | null;
   avatarUrl: string | null;
+  image: string | null;
 };
 
 type ThreadRow = {
