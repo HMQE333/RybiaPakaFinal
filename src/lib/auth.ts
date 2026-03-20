@@ -92,8 +92,10 @@ export const auth = betterAuth({
           const nick = typeof user.nick === "string" ? user.nick.trim() : "";
           const avatarUrl =
             typeof user.avatarUrl === "string" ? user.avatarUrl.trim() : "";
+          const oauthImage =
+            typeof (user as any).image === "string" ? (user as any).image.trim() : "";
           const candidates = [username, nick].filter(Boolean);
-          const fallbackAvatar = avatarUrl || getRandomDefaultAvatar();
+          const fallbackAvatar = avatarUrl || oauthImage || getRandomDefaultAvatar();
 
           if (email) {
             const existingEmail = await prisma.$queryRaw<{ id: number }[]>`

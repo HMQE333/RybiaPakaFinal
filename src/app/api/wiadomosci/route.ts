@@ -23,8 +23,8 @@ export async function GET(req: NextRequest) {
     },
     orderBy: { createdAt: "desc" },
     include: {
-      sender: { select: { id: true, username: true, nick: true, name: true, avatarUrl: true } },
-      receiver: { select: { id: true, username: true, nick: true, name: true, avatarUrl: true } },
+      sender: { select: { id: true, username: true, nick: true, name: true, avatarUrl: true, image: true } },
+      receiver: { select: { id: true, username: true, nick: true, name: true, avatarUrl: true, image: true } },
     },
   });
 
@@ -47,7 +47,13 @@ export async function GET(req: NextRequest) {
     if (!conversationsMap.has(otherId)) {
       conversationsMap.set(otherId, {
         otherId,
-        other,
+        other: {
+          id: other.id,
+          username: other.username,
+          nick: other.nick,
+          name: other.name,
+          avatarUrl: other.avatarUrl || other.image || null,
+        },
         lastMessage: { text: msg.text, createdAt: msg.createdAt.toISOString(), isMine },
         unreadCount: isUnread ? 1 : 0,
       });

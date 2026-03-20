@@ -103,12 +103,12 @@ export async function GET(req: NextRequest, { params }: RouteContext) {
         gc."content"   AS "content",
         gc."createdAt" AS "createdAt",
         gc."parentId"  AS "parentId",
-        u."id"         AS "authorId",
-        u."username"   AS "username",
-        u."nick"       AS "nick",
-        u."name"       AS "name",
-        u."avatarUrl"  AS "avatarUrl",
-        COALESCE(l."likeCount", 0)                         AS "likes",
+        u."id"                                  AS "authorId",
+        u."username"                            AS "username",
+        u."nick"                                AS "nick",
+        u."name"                                AS "name",
+        COALESCE(u."avatarUrl", u."image")      AS "avatarUrl",
+        COALESCE(l."likeCount", 0)              AS "likes",
         CASE WHEN ul."userId" IS NULL THEN 0 ELSE 1 END    AS "liked"
       FROM "GalleryComment" gc
       LEFT JOIN "User" u ON u."id" = gc."authorId"
@@ -130,11 +130,11 @@ export async function GET(req: NextRequest, { params }: RouteContext) {
         gc."content"   AS "content",
         gc."createdAt" AS "createdAt",
         gc."parentId"  AS "parentId",
-        u."id"         AS "authorId",
-        u."username"   AS "username",
-        u."nick"       AS "nick",
-        u."name"       AS "name",
-        u."avatarUrl"  AS "avatarUrl",
+        u."id"                                  AS "authorId",
+        u."username"                            AS "username",
+        u."nick"                                AS "nick",
+        u."name"                                AS "name",
+        COALESCE(u."avatarUrl", u."image")      AS "avatarUrl",
         0 AS "likes",
         0 AS "liked"
       FROM "GalleryComment" gc
@@ -306,7 +306,7 @@ export async function POST(req: NextRequest, { params }: RouteContext) {
 
     const author = await prisma.user.findUnique({
       where: { id: userId },
-      select: { id: true, username: true, nick: true, name: true, avatarUrl: true },
+      select: { id: true, username: true, nick: true, name: true, avatarUrl: true, image: true },
     });
 
     const createdRow = await prisma.$queryRaw<
@@ -330,7 +330,7 @@ export async function POST(req: NextRequest, { params }: RouteContext) {
           author: {
             id: author?.id ?? userId,
             name: resolveAuthorName(author ?? {}, null),
-            avatar: author?.avatarUrl ?? null,
+            avatar: author?.avatarUrl || author?.image || null,
           },
         },
       },

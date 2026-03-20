@@ -63,6 +63,14 @@ Set in Replit Secrets / Env Vars:
 - Max sizes: gallery 8MB, avatar 2MB, banner 5MB; allowed: jpg, png, webp
 - **Note**: Files in `public/uploads/` do NOT survive container restarts (Replit ephemeral FS)
 
+## Avatar Fallback Pattern (CRITICAL)
+OAuth users (Google, Discord, Facebook) have their avatar stored in `image` (not `avatarUrl`). Every route that returns an author/user's avatar must handle both:
+- **Prisma selects**: always include `image: true` alongside `avatarUrl: true`
+- **Raw SQL**: always use `COALESCE(u."avatarUrl", u."image") AS "avatarUrl"`
+- **Response JSON**: `avatarUrl || image || null`
+
+Routes that have been fully patched: `search`, `galeria/items`, `galeria/items/[itemId]/comments`, `znajomi`, `znajomi/zaproszenia`, `wiadomosci`, `wiadomosci/[userId]`, `forum/threads`, `forum/threads/[threadId]/comments`, `dyskusje/messages`, `personalizedFeed.ts`.
+
 ## Migration Notes (Vercel → Replit)
 - Database switched from SQLite (`file:`) to PostgreSQL (Replit Helium DB)
 - Prisma schema provider updated to `postgresql`

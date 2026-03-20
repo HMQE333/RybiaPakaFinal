@@ -45,6 +45,10 @@ async function buildProfile(user: UserWithRelations): Promise<Profile> {
   const ensureAvatarUrl = async () => {
     const trimmed = typeof user.avatarUrl === "string" ? user.avatarUrl.trim() : "";
     if (trimmed) return trimmed;
+
+    const oauthImage = typeof (user as any).image === "string" ? (user as any).image.trim() : "";
+    if (oauthImage) return oauthImage;
+
     const fallback = getRandomDefaultAvatar();
     try {
       await prisma.user.update({

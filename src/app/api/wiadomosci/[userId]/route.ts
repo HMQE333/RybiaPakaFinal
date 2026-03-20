@@ -26,10 +26,13 @@ export async function GET(
     return NextResponse.json({ error: "Nieprawidłowy użytkownik" }, { status: 400 });
   }
 
-  const other = await prisma.user.findUnique({
+  const otherRaw = await prisma.user.findUnique({
     where: { id: otherId },
-    select: { id: true, username: true, nick: true, name: true, avatarUrl: true },
+    select: { id: true, username: true, nick: true, name: true, avatarUrl: true, image: true },
   });
+  const other = otherRaw
+    ? { ...otherRaw, avatarUrl: otherRaw.avatarUrl || otherRaw.image || null }
+    : null;
   if (!other) {
     return NextResponse.json({ error: "Użytkownik nie istnieje" }, { status: 404 });
   }
@@ -49,7 +52,7 @@ export async function GET(
     orderBy: { createdAt: "desc" },
     take: limit,
     include: {
-      sender: { select: { id: true, username: true, nick: true, name: true, avatarUrl: true } },
+      sender: { select: { id: true, username: true, nick: true, name: true, avatarUrl: true, image: true } },
     },
   });
 
@@ -66,7 +69,15 @@ export async function GET(
       createdAt: m.createdAt.toISOString(),
       readAt: m.readAt ? m.readAt.toISOString() : null,
       isMine: m.senderId === viewerId,
-      sender: m.sender,
+      sender: m.sender
+        ? {
+            id: m.sender.id,
+            username: m.sender.username,
+            nick: m.sender.nick,
+            name: m.sender.name,
+            avatarUrl: m.sender.avatarUrl || m.sender.image || null,
+          }
+        : null,
     })),
     hasMore: messages.length === limit,
   });
@@ -108,7 +119,7 @@ export async function POST(
   const message = await prisma.message.create({
     data: { senderId: viewerId, receiverId: otherId, text },
     include: {
-      sender: { select: { id: true, username: true, nick: true, name: true, avatarUrl: true } },
+      sender: { select: { id: true, username: true, nick: true, name: true, avatarUrl: true, image: true } },
     },
   });
 

@@ -9,6 +9,7 @@ type AuthorShape = {
   nick: string | null;
   name: string | null;
   avatarUrl: string | null;
+  image?: string | null;
 };
 
 const DEFAULT_AVATAR = "/artwork/404_user.png";
@@ -22,8 +23,8 @@ export function resolveAuthorName(author?: AuthorShape | null) {
   return author.username || author.nick || author.name || GUEST_NAME;
 }
 
-export function resolveAvatarUrl(avatarUrl?: string | null) {
-  return avatarUrl || DEFAULT_AVATAR;
+export function resolveAvatarUrl(avatarUrl?: string | null, image?: string | null) {
+  return avatarUrl || image || DEFAULT_AVATAR;
 }
 
 export function isArchivedBoardName(name?: string | null) {

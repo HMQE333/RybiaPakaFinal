@@ -20,17 +20,26 @@ export async function GET(req: NextRequest) {
   const friendships = await prisma.friendship.findMany({
     where: { OR: [{ aId: viewerId }, { bId: viewerId }] },
     include: {
-      a: { select: { id: true, username: true, nick: true, name: true, avatarUrl: true } },
-      b: { select: { id: true, username: true, nick: true, name: true, avatarUrl: true } },
+      a: { select: { id: true, username: true, nick: true, name: true, avatarUrl: true, image: true } },
+      b: { select: { id: true, username: true, nick: true, name: true, avatarUrl: true, image: true } },
     },
     orderBy: { createdAt: "desc" },
   });
 
-  const friends = friendships.map((f) => ({
-    friendshipId: f.id,
-    friend: f.aId === viewerId ? f.b : f.a,
-    since: f.createdAt.toISOString(),
-  }));
+  const friends = friendships.map((f) => {
+    const raw = f.aId === viewerId ? f.b : f.a;
+    return {
+      friendshipId: f.id,
+      friend: {
+        id: raw.id,
+        username: raw.username,
+        nick: raw.nick,
+        name: raw.name,
+        avatarUrl: raw.avatarUrl || raw.image || null,
+      },
+      since: f.createdAt.toISOString(),
+    };
+  });
 
   return NextResponse.json({ friends });
 }

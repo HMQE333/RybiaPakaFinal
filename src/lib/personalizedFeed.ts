@@ -294,6 +294,7 @@ export async function getPersonalizedFeedPreview(
           nick: true,
           name: true,
           avatarUrl: true,
+          image: true,
           region: { select: { name: true } },
         },
       },
@@ -331,7 +332,7 @@ export async function getPersonalizedFeedPreview(
           u."username" as username,
           u."nick" as nick,
           u."name" as name,
-          u."avatarUrl" as avatarUrl,
+          COALESCE(u."avatarUrl", u."image") as avatarUrl,
           r."name" as regionName
         FROM "GalleryItem" gi
         JOIN "User" u ON u."id" = gi."authorId"
@@ -401,7 +402,7 @@ export async function getPersonalizedFeedPreview(
       board: boardName,
       author: {
         name: getUserLabel(thread.author ?? {}),
-        avatarUrl: thread.author?.avatarUrl ?? null,
+        avatarUrl: thread.author?.avatarUrl || (thread.author as any)?.image || null,
         region: getVoivodeshipLabel(authorRegionRaw),
       },
       score,

@@ -62,7 +62,7 @@ function serializeComment(
       ? {
           id: author.id,
           name: resolveAuthorName(author),
-          avatar: resolveAvatarUrl(author.avatarUrl),
+          avatar: resolveAvatarUrl(author.avatarUrl, author.image),
         }
       : null,
     likes,
@@ -113,6 +113,7 @@ export async function GET(
           nick: true,
           name: true,
           avatarUrl: true,
+          image: true,
         },
       },
       reactions: {
@@ -216,6 +217,7 @@ export async function POST(
             nick: true,
             name: true,
             avatarUrl: true,
+            image: true,
           },
         },
       },
@@ -232,7 +234,7 @@ export async function POST(
             ? {
                 id: comment.author.id,
                 name: resolveAuthorName(comment.author),
-                avatar: resolveAvatarUrl(comment.author.avatarUrl),
+                avatar: resolveAvatarUrl(comment.author.avatarUrl, comment.author.image),
               }
             : null,
           likes: 0,

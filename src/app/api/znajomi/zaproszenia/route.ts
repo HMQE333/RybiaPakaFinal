@@ -23,7 +23,7 @@ export async function GET(req: NextRequest) {
       orderBy: { createdAt: "desc" },
       include: {
         sender: {
-          select: { id: true, username: true, nick: true, name: true, avatarUrl: true },
+          select: { id: true, username: true, nick: true, name: true, avatarUrl: true, image: true },
         },
       },
     }),
@@ -32,7 +32,7 @@ export async function GET(req: NextRequest) {
       orderBy: { createdAt: "desc" },
       include: {
         receiver: {
-          select: { id: true, username: true, nick: true, name: true, avatarUrl: true },
+          select: { id: true, username: true, nick: true, name: true, avatarUrl: true, image: true },
         },
       },
     }),

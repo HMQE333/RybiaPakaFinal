@@ -65,6 +65,7 @@ export async function GET(req: NextRequest) {
       nick: true,
       name: true,
       avatarUrl: true,
+      image: true,
       region: { select: { name: true } },
       methods: { select: { method: { select: { name: true } } } },
     },
@@ -95,7 +96,7 @@ export async function GET(req: NextRequest) {
       content: true,
       createdAt: true,
       board: { select: { name: true } },
-      author: { select: { username: true, nick: true, name: true, avatarUrl: true } },
+      author: { select: { username: true, nick: true, name: true, avatarUrl: true, image: true } },
       _count: { select: { posts: true } },
     },
     orderBy: { createdAt: "desc" },
@@ -132,7 +133,7 @@ export async function GET(req: NextRequest) {
         u."username"     AS "username",
         u."nick"         AS "nick",
         u."name"         AS "name",
-        u."avatarUrl"    AS "avatarUrl"
+        COALESCE(u."avatarUrl", u."image") AS "avatarUrl"
       FROM "GalleryItem" gi
       JOIN "User" u ON u."id" = gi."authorId"
       WHERE ${Prisma.join(galleryFilters, " AND ")}
@@ -157,7 +158,7 @@ export async function GET(req: NextRequest) {
     users: users.map((user) => ({
       id: user.id,
       handle: resolveUserLabel(user),
-      avatarUrl: user.avatarUrl,
+      avatarUrl: user.avatarUrl || user.image || null,
       region: getVoivodeshipLabel(user.region?.name ?? null),
       methods: user.methods.map((method) => method.method.name),
     })),
@@ -170,7 +171,7 @@ export async function GET(req: NextRequest) {
       comments: thread._count.posts,
       author: {
         name: resolveUserLabel(thread.author ?? undefined),
-        avatarUrl: thread.author?.avatarUrl ?? null,
+        avatarUrl: thread.author?.avatarUrl || thread.author?.image || null,
       },
     })),
     gallery: galleryRows.map((item) => ({

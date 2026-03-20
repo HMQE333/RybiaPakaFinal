@@ -251,7 +251,7 @@ export async function POST(req: NextRequest) {
       },
       include: {
         author: {
-          select: { id: true, username: true, nick: true, name: true, avatarUrl: true },
+          select: { id: true, username: true, nick: true, name: true, avatarUrl: true, image: true },
         },
       },
     });
@@ -273,7 +273,7 @@ export async function POST(req: NextRequest) {
           author: {
             id: created.author.id,
             name: resolveAuthorName(created.author, null),
-            avatar: created.author.avatarUrl ?? null,
+            avatar: created.author.avatarUrl || created.author.image || null,
           },
         },
       },

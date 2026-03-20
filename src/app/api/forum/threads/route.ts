@@ -64,7 +64,7 @@ function serializeThread(
       ? {
           id: author.id,
           name: resolveAuthorName(author),
-          avatar: resolveAvatarUrl(author.avatarUrl),
+          avatar: resolveAvatarUrl(author.avatarUrl, author.image),
         }
       : null,
     comments: meta.comments,
@@ -94,6 +94,7 @@ export async function GET(req: NextRequest) {
           nick: true,
           name: true,
           avatarUrl: true,
+          image: true,
         },
       },
     },
@@ -235,6 +236,7 @@ export async function POST(req: NextRequest) {
             nick: true,
             name: true,
             avatarUrl: true,
+            image: true,
           },
         },
       },
