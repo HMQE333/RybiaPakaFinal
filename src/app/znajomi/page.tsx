@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { Users, Clock, UserCheck, UserX, MessageSquare, UserMinus, UserPlus, X } from "lucide-react";
+import { Users, Clock, UserCheck, UserX, MessageSquare, UserMinus, UserPlus, X, Send } from "lucide-react";
 import Page from "@/components/Page";
 import UploadImage from "@/components/UploadImage";
 
@@ -30,10 +30,9 @@ function displayName(u: UserSnippet) {
   return u.username || u.nick || u.name || "Użytkownik";
 }
 
-function Avatar({ user, size = "md" }: { user: UserSnippet; size?: "sm" | "md" | "lg" }) {
-  const sizeClass = size === "sm" ? "h-9 w-9" : size === "lg" ? "h-14 w-14" : "h-11 w-11";
+function Avatar({ user }: { user: UserSnippet }) {
   return (
-    <div className={`${sizeClass} rounded-full overflow-hidden bg-background-2 shrink-0 border border-white/10`}>
+    <div className="h-11 w-11 rounded-full overflow-hidden bg-background-2 shrink-0 border border-white/10">
       <UploadImage
         src={user.avatarUrl ?? "/artwork/404_user.png"}
         alt={displayName(user)}
@@ -78,7 +77,7 @@ function AddFriendDialog({ onClose, onSent }: { onClose: () => void; onSent: () 
         const code = data?.error ?? "";
         setErrorMsg(
           code === "Użytkownik nie istnieje"
-            ? `Hej! Nasz statek nie dotarł do portu. Sprawdź, czy nick się zgadza — wielkie i małe litery mają znaczenie!`
+            ? "Hej! Nasz statek nie dotarł do portu. Sprawdź, czy nick się zgadza — wielkość liter ma znaczenie!"
             : code === "Zaproszenie już istnieje"
               ? "Zaproszenie do tej osoby już zostało wysłane."
               : code === "Jesteście już znajomymi"
@@ -202,8 +201,10 @@ function AddFriendDialog({ onClose, onSent }: { onClose: () => void; onSent: () 
   );
 }
 
+type Tab = "friends" | "incoming" | "outgoing";
+
 export default function ZnajomiPage() {
-  const [tab, setTab] = useState<"friends" | "pending">("friends");
+  const [tab, setTab] = useState<Tab>("friends");
   const [friends, setFriends] = useState<Friend[]>([]);
   const [incoming, setIncoming] = useState<FriendRequest[]>([]);
   const [outgoing, setOutgoing] = useState<FriendRequest[]>([]);
@@ -267,7 +268,25 @@ export default function ZnajomiPage() {
     load();
   }
 
-  const pendingCount = incoming.length;
+  const tabs: { id: Tab; label: string; icon: React.ReactNode; badge?: number }[] = [
+    {
+      id: "friends",
+      label: `Znajomi`,
+      icon: <UserCheck size={15} />,
+    },
+    {
+      id: "incoming",
+      label: "Otrzymane",
+      icon: <UserPlus size={15} />,
+      badge: incoming.length || undefined,
+    },
+    {
+      id: "outgoing",
+      label: "Wysłane",
+      icon: <Send size={15} />,
+      badge: outgoing.length || undefined,
+    },
+  ];
 
   return (
     <Page>
@@ -291,26 +310,29 @@ export default function ZnajomiPage() {
             </button>
           </div>
 
-          <div className="flex border-b border-white/10 mb-6">
-            <button
-              onClick={() => setTab("friends")}
-              className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 -mb-px transition-colors ${tab === "friends" ? "border-accent text-accent" : "border-transparent text-foreground-2 hover:text-foreground"}`}
-            >
-              <UserCheck size={16} />
-              Znajomi ({friends.length})
-            </button>
-            <button
-              onClick={() => setTab("pending")}
-              className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 -mb-px transition-colors ${tab === "pending" ? "border-accent text-accent" : "border-transparent text-foreground-2 hover:text-foreground"}`}
-            >
-              <Clock size={16} />
-              Oczekujące
-              {pendingCount > 0 && (
-                <span className="ml-1 bg-accent text-black text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
-                  {pendingCount}
-                </span>
-              )}
-            </button>
+          <div className="flex border-b border-white/10 mb-6 gap-1">
+            {tabs.map((t) => (
+              <button
+                key={t.id}
+                onClick={() => setTab(t.id)}
+                className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 -mb-px transition-colors ${
+                  tab === t.id
+                    ? "border-accent text-accent"
+                    : "border-transparent text-foreground-2 hover:text-foreground"
+                }`}
+              >
+                {t.icon}
+                {t.label}
+                {t.id === "friends" && (
+                  <span className="text-foreground-2 font-normal">({friends.length})</span>
+                )}
+                {t.badge !== undefined && t.badge > 0 && (
+                  <span className="bg-accent text-black text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+                    {t.badge}
+                  </span>
+                )}
+              </button>
+            ))}
           </div>
 
           {loading ? (
@@ -366,85 +388,105 @@ export default function ZnajomiPage() {
                 ))}
               </div>
             )
+          ) : tab === "incoming" ? (
+            incoming.length === 0 ? (
+              <div className="flex flex-col items-center py-16 gap-3 text-foreground-2">
+                <UserPlus size={48} className="opacity-30" />
+                <p className="text-base">Brak oczekujących zaproszeń.</p>
+              </div>
+            ) : (
+              <div className="flex flex-col gap-3">
+                <p className="text-xs text-foreground-2 uppercase tracking-widest mb-1">
+                  Oczekuje na akceptację — {incoming.length}
+                </p>
+                {incoming.map((req) => {
+                  const user = req.sender!;
+                  return (
+                    <div
+                      key={req.id}
+                      className="flex items-center gap-3 p-3 rounded-2xl border border-white/10 bg-background-3/60"
+                    >
+                      <Link href={`/profil/${user.username ?? user.id}`}>
+                        <Avatar user={user} />
+                      </Link>
+                      <div className="flex-1 min-w-0">
+                        <Link
+                          href={`/profil/${user.username ?? user.id}`}
+                          className="font-medium text-foreground hover:text-accent transition-colors truncate block"
+                        >
+                          @{displayName(user)}
+                        </Link>
+                        <p className="text-xs text-foreground-2">chce być Twoim znajomym</p>
+                      </div>
+                      <div className="flex gap-2 shrink-0">
+                        <button
+                          onClick={() => handleAccept(req.id)}
+                          className="flex items-center gap-1.5 h-9 px-3 rounded-full bg-accent text-black text-sm font-medium hover:opacity-90 transition-opacity"
+                        >
+                          <UserCheck size={15} />
+                          Przyjmij
+                        </button>
+                        <button
+                          onClick={() => handleReject(req.id)}
+                          className="flex items-center justify-center h-9 w-9 rounded-full border border-white/10 text-foreground-2 hover:text-red-400 hover:border-red-500/40 transition-colors"
+                          title="Odrzuć"
+                        >
+                          <UserX size={15} />
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )
           ) : (
-            <div className="flex flex-col gap-6">
-              {incoming.length > 0 && (
-                <div>
-                  <h2 className="text-sm font-medium text-foreground-2 mb-3">Otrzymane zaproszenia</h2>
-                  <div className="flex flex-col gap-3">
-                    {incoming.map((req) => {
-                      const user = req.sender!;
-                      return (
-                        <div key={req.id} className="flex items-center gap-3 p-3 rounded-2xl border border-white/10 bg-background-3/60">
-                          <Link href={`/profil/${user.username ?? user.id}`}>
-                            <Avatar user={user} />
-                          </Link>
-                          <div className="flex-1 min-w-0">
-                            <Link href={`/profil/${user.username ?? user.id}`} className="font-medium text-foreground hover:text-accent transition-colors truncate block">
-                              @{displayName(user)}
-                            </Link>
-                            <p className="text-xs text-foreground-2">chce być Twoim znajomym</p>
-                          </div>
-                          <div className="flex gap-2 shrink-0">
-                            <button
-                              onClick={() => handleAccept(req.id)}
-                              className="flex items-center gap-1.5 h-9 px-3 rounded-full bg-accent text-black text-sm font-medium hover:opacity-90 transition-opacity"
-                            >
-                              <UserCheck size={15} />
-                              Przyjmij
-                            </button>
-                            <button
-                              onClick={() => handleReject(req.id)}
-                              className="flex items-center justify-center h-9 w-9 rounded-full border border-white/10 text-foreground-2 hover:text-red-400 hover:border-red-500/40 transition-colors"
-                              title="Odrzuć"
-                            >
-                              <UserX size={15} />
-                            </button>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-
-              {outgoing.length > 0 && (
-                <div>
-                  <h2 className="text-sm font-medium text-foreground-2 mb-3">Wysłane zaproszenia</h2>
-                  <div className="flex flex-col gap-3">
-                    {outgoing.map((req) => {
-                      const user = req.receiver!;
-                      return (
-                        <div key={req.id} className="flex items-center gap-3 p-3 rounded-2xl border border-white/10 bg-background-3/60">
-                          <Link href={`/profil/${user.username ?? user.id}`}>
-                            <Avatar user={user} />
-                          </Link>
-                          <div className="flex-1 min-w-0">
-                            <Link href={`/profil/${user.username ?? user.id}`} className="font-medium text-foreground hover:text-accent transition-colors truncate block">
-                              @{displayName(user)}
-                            </Link>
-                            <p className="text-xs text-foreground-2">oczekuje na akceptację</p>
-                          </div>
-                          <button
-                            onClick={() => handleCancel(req.id)}
-                            className="flex items-center gap-1.5 h-9 px-3 rounded-full border border-white/10 text-foreground-2 hover:text-red-400 hover:border-red-500/40 text-sm transition-colors shrink-0"
-                          >
-                            Anuluj
-                          </button>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-
-              {incoming.length === 0 && outgoing.length === 0 && (
-                <div className="flex flex-col items-center py-16 gap-3 text-foreground-2">
-                  <Clock size={48} className="opacity-30" />
-                  <p className="text-base">Brak oczekujących zaproszeń.</p>
-                </div>
-              )}
-            </div>
+            outgoing.length === 0 ? (
+              <div className="flex flex-col items-center py-16 gap-3 text-foreground-2">
+                <Clock size={48} className="opacity-30" />
+                <p className="text-base">Nie wysłałeś żadnych zaproszeń.</p>
+                <button
+                  onClick={() => setShowAddDialog(true)}
+                  className="flex items-center gap-2 px-4 py-2 rounded-xl bg-accent/15 border border-accent/30 text-accent text-sm font-medium hover:bg-accent/25 transition-all"
+                >
+                  <UserPlus size={15} />
+                  Dodaj znajomego
+                </button>
+              </div>
+            ) : (
+              <div className="flex flex-col gap-3">
+                <p className="text-xs text-foreground-2 uppercase tracking-widest mb-1">
+                  Wysłane i oczekujące — {outgoing.length}
+                </p>
+                {outgoing.map((req) => {
+                  const user = req.receiver!;
+                  return (
+                    <div
+                      key={req.id}
+                      className="flex items-center gap-3 p-3 rounded-2xl border border-white/10 bg-background-3/60"
+                    >
+                      <Link href={`/profil/${user.username ?? user.id}`}>
+                        <Avatar user={user} />
+                      </Link>
+                      <div className="flex-1 min-w-0">
+                        <Link
+                          href={`/profil/${user.username ?? user.id}`}
+                          className="font-medium text-foreground hover:text-accent transition-colors truncate block"
+                        >
+                          @{displayName(user)}
+                        </Link>
+                        <p className="text-xs text-foreground-2">oczekuje na akceptację</p>
+                      </div>
+                      <button
+                        onClick={() => handleCancel(req.id)}
+                        className="flex items-center gap-1.5 h-9 px-3 rounded-full border border-white/10 text-foreground-2 hover:text-red-400 hover:border-red-500/40 text-sm transition-colors shrink-0"
+                      >
+                        Anuluj
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            )
           )}
         </div>
       </div>
