@@ -10,6 +10,7 @@ import {
   resolveBoardId,
   resolveSessionUserId,
 } from "../_utils";
+import { VALID_EMOJI_IDS } from "@/lib/forumEmojis";
 
 const MAX_TITLE_LENGTH = 140;
 const MAX_CONTENT_LENGTH = 5_000;
@@ -52,6 +53,8 @@ function serializeThread(
     canEdit: boolean;
     canArchive: boolean;
     archived: boolean;
+    reactionCounts: Record<string, number>;
+    myReactions: string[];
   }
 ) {
   const author = thread.author;
@@ -75,6 +78,8 @@ function serializeThread(
     canEdit: meta.canEdit,
     canArchive: meta.canArchive,
     archived: meta.archived,
+    reactionCounts: meta.reactionCounts,
+    myReactions: meta.myReactions,
   };
 }
 
@@ -143,13 +148,21 @@ export async function GET(req: NextRequest) {
   });
 
   const rootIds = Array.from(new Set(rootByThread.values()));
-  const likeReactions =
+  const emojiTypes = Array.from(VALID_EMOJI_IDS);
+
+  const [likeReactions, emojiReactions] =
     rootIds.length > 0
-      ? await prisma.reaction.findMany({
-          where: { postId: { in: rootIds }, type: LIKE_TYPE },
-          select: { postId: true, userId: true },
-        })
-      : [];
+      ? await Promise.all([
+          prisma.reaction.findMany({
+            where: { postId: { in: rootIds }, type: LIKE_TYPE },
+            select: { postId: true, userId: true },
+          }),
+          prisma.reaction.findMany({
+            where: { postId: { in: rootIds }, type: { in: emojiTypes } },
+            select: { postId: true, userId: true, type: true },
+          }),
+        ])
+      : [[], []];
 
   const likesByPost = new Map<number, number>();
   const likedPosts = new Set<number>();
@@ -158,6 +171,20 @@ export async function GET(req: NextRequest) {
     likesByPost.set(reaction.postId, (likesByPost.get(reaction.postId) ?? 0) + 1);
     if (viewerId && reaction.userId === viewerId) {
       likedPosts.add(reaction.postId);
+    }
+  });
+
+  const emojiCountsByPost = new Map<number, Record<string, number>>();
+  const myEmojisByPost = new Map<number, string[]>();
+
+  emojiReactions.forEach((reaction) => {
+    const counts = emojiCountsByPost.get(reaction.postId) ?? {};
+    counts[reaction.type] = (counts[reaction.type] ?? 0) + 1;
+    emojiCountsByPost.set(reaction.postId, counts);
+    if (viewerId && reaction.userId === viewerId) {
+      const mine = myEmojisByPost.get(reaction.postId) ?? [];
+      mine.push(reaction.type);
+      myEmojisByPost.set(reaction.postId, mine);
     }
   });
 
@@ -170,6 +197,8 @@ export async function GET(req: NextRequest) {
     const canEdit = Boolean(viewerId) && thread.authorId === viewerId;
     const canArchive = Boolean(viewerId) && thread.authorId === viewerId;
     const archived = isArchivedBoardName(thread.board?.name);
+    const reactionCounts = rootId ? (emojiCountsByPost.get(rootId) ?? {}) : {};
+    const myReactions = rootId ? (myEmojisByPost.get(rootId) ?? []) : [];
     return serializeThread(thread, {
       comments,
       likes,
@@ -178,6 +207,8 @@ export async function GET(req: NextRequest) {
       canEdit,
       canArchive,
       archived,
+      reactionCounts,
+      myReactions,
     });
   });
 
@@ -251,6 +282,8 @@ export async function POST(req: NextRequest) {
     canEdit: true,
     canArchive: true,
     archived: false,
+    reactionCounts: {},
+    myReactions: [],
   });
 
     return NextResponse.json({ thread: payload }, { status: 201 });

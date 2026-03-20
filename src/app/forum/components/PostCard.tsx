@@ -8,6 +8,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { handleUploadImageError } from "@/lib/imageFallback";
+import ForumReactionBar from "./ForumReactionBar";
 
 interface PostCardProps {
   id: number;
@@ -23,6 +24,9 @@ interface PostCardProps {
   liked?: boolean;
   tag?: string;
   canDelete?: boolean;
+  reactionCounts?: Record<string, number>;
+  myReactions?: string[];
+  authenticated?: boolean;
   onClick: () => void;
   onLike: () => void;
   onComment: () => void;
@@ -32,6 +36,7 @@ interface PostCardProps {
 }
 
 export default function PostCard({
+  id,
   author,
   avatar,
   timeAgo,
@@ -44,6 +49,9 @@ export default function PostCard({
   liked,
   tag,
   canDelete,
+  reactionCounts = {},
+  myReactions = [],
+  authenticated = false,
   onClick,
   onLike,
   onComment,
@@ -62,6 +70,8 @@ export default function PostCard({
   const pollCount = pollOptions?.length ?? 0;
   const showMeta =
     metaPreview.length > 0 || extraMeta > 0 || pollCount >= 2;
+
+  const hasReactions = Object.values(reactionCounts).some((c) => c > 0);
 
   return (
     <div
@@ -181,6 +191,17 @@ export default function PostCard({
               <span>Udostępnij</span>
             </button>
           </div>
+
+          {(hasReactions || authenticated) && (
+            <div className="mt-2 pt-2 border-t border-white/5">
+              <ForumReactionBar
+                threadId={id}
+                initialCounts={reactionCounts}
+                initialMine={myReactions}
+                authenticated={authenticated}
+              />
+            </div>
+          )}
         </div>
       </div>
     </div>
