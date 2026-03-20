@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { Users, Clock, UserCheck, UserX, MessageSquare, UserMinus, Search } from "lucide-react";
+import { Users, Clock, UserCheck, UserX, MessageSquare, UserMinus, UserPlus, X } from "lucide-react";
 import Page from "@/components/Page";
 import UploadImage from "@/components/UploadImage";
 
@@ -30,9 +30,10 @@ function displayName(u: UserSnippet) {
   return u.username || u.nick || u.name || "Użytkownik";
 }
 
-function Avatar({ user }: { user: UserSnippet }) {
+function Avatar({ user, size = "md" }: { user: UserSnippet; size?: "sm" | "md" | "lg" }) {
+  const sizeClass = size === "sm" ? "h-9 w-9" : size === "lg" ? "h-14 w-14" : "h-11 w-11";
   return (
-    <div className="h-11 w-11 rounded-full overflow-hidden bg-background-2 shrink-0 border border-white/10">
+    <div className={`${sizeClass} rounded-full overflow-hidden bg-background-2 shrink-0 border border-white/10`}>
       <UploadImage
         src={user.avatarUrl ?? "/artwork/404_user.png"}
         alt={displayName(user)}
@@ -43,12 +44,171 @@ function Avatar({ user }: { user: UserSnippet }) {
   );
 }
 
+function AddFriendDialog({ onClose, onSent }: { onClose: () => void; onSent: () => void }) {
+  const [input, setInput] = useState("");
+  const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
+  const [errorMsg, setErrorMsg] = useState("");
+  const inputRef = useRef<HTMLInputElement>(null);
+  const overlayRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    inputRef.current?.focus();
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
+  async function handleSend() {
+    const trimmed = input.trim();
+    if (!trimmed || status === "loading") return;
+    setStatus("loading");
+    setErrorMsg("");
+    try {
+      const res = await fetch("/api/znajomi/zaproszenia", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username: trimmed }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok) {
+        setStatus("success");
+        setInput("");
+        setTimeout(() => onSent(), 1200);
+      } else {
+        const code = data?.error ?? "";
+        setErrorMsg(
+          code === "Użytkownik nie istnieje"
+            ? `Hej! Nasz statek nie dotarł do portu. Sprawdź, czy nick się zgadza — wielkie i małe litery mają znaczenie!`
+            : code === "Zaproszenie już istnieje"
+              ? "Zaproszenie do tej osoby już zostało wysłane."
+              : code === "Jesteście już znajomymi"
+                ? "Ta osoba jest już Twoim znajomym!"
+                : code === "Nie możesz zaprosić siebie"
+                  ? "Nie możesz dodać samego siebie."
+                  : "Nie udało się wysłać zaproszenia. Spróbuj ponownie."
+        );
+        setStatus("error");
+      }
+    } catch {
+      setErrorMsg("Błąd połączenia. Sprawdź internet i spróbuj ponownie.");
+      setStatus("error");
+    }
+  }
+
+  function handleOverlayClick(e: React.MouseEvent<HTMLDivElement>) {
+    if (e.target === overlayRef.current) onClose();
+  }
+
+  const trimmed = input.trim();
+  const isValid = trimmed.length >= 2;
+
+  return (
+    <div
+      ref={overlayRef}
+      onClick={handleOverlayClick}
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm"
+    >
+      <div className="relative w-full max-w-md rounded-2xl border border-white/10 bg-background-2 shadow-[0_24px_80px_rgba(0,0,0,0.6)] overflow-hidden">
+        <div className="absolute inset-0 pointer-events-none opacity-40 bg-[radial-gradient(circle_at_10%_0%,rgba(0,206,0,0.15),transparent_50%)]" />
+
+        <div className="relative px-6 pt-6 pb-2">
+          <button
+            onClick={onClose}
+            className="absolute top-4 right-4 p-1.5 rounded-full text-foreground-2 hover:text-foreground hover:bg-white/10 transition-colors"
+            aria-label="Zamknij"
+          >
+            <X size={18} />
+          </button>
+          <h2 className="text-xl font-bold text-foreground">Dodaj znajomego</h2>
+          <p className="mt-1 text-sm text-foreground-2 leading-relaxed">
+            Możesz dodać znajomego, wpisując jego nazwę użytkownika. Pamiętaj, że wielkość liter ma znaczenie!
+          </p>
+        </div>
+
+        <div className="relative px-6 pt-4 pb-6 space-y-4">
+          <div
+            className={`flex items-center gap-2 rounded-xl border px-3 py-1 transition-colors ${
+              status === "error"
+                ? "border-red-500/60 bg-red-500/5"
+                : "border-white/15 bg-background-3/80 focus-within:border-accent/60"
+            }`}
+          >
+            <span className="shrink-0 text-foreground-2 text-sm select-none">@</span>
+            <input
+              ref={inputRef}
+              type="text"
+              value={input}
+              onChange={(e) => {
+                setInput(e.target.value);
+                if (status !== "idle") { setStatus("idle"); setErrorMsg(""); }
+              }}
+              onKeyDown={(e) => { if (e.key === "Enter" && isValid) handleSend(); }}
+              placeholder="Wpisz nazwę użytkownika"
+              className="flex-1 bg-transparent py-2.5 text-sm text-foreground placeholder:text-foreground-2/50 outline-none"
+              disabled={status === "loading" || status === "success"}
+              autoComplete="off"
+              spellCheck={false}
+            />
+            {input && status === "idle" && (
+              <button
+                onClick={() => setInput("")}
+                className="shrink-0 p-0.5 rounded-full text-foreground-2 hover:text-foreground transition-colors"
+              >
+                <X size={14} />
+              </button>
+            )}
+          </div>
+
+          {status === "error" && errorMsg && (
+            <div className="flex items-start gap-2 rounded-xl border border-red-500/30 bg-red-500/10 px-3 py-2.5 text-sm text-red-300">
+              <span className="shrink-0 mt-0.5">⚠</span>
+              <span>{errorMsg}</span>
+            </div>
+          )}
+
+          {status === "success" && (
+            <div className="flex items-center gap-2 rounded-xl border border-accent/30 bg-accent/10 px-3 py-2.5 text-sm text-accent">
+              <UserCheck size={16} className="shrink-0" />
+              <span>Zaproszenie zostało wysłane!</span>
+            </div>
+          )}
+
+          <div className="flex justify-end pt-1">
+            <button
+              onClick={handleSend}
+              disabled={!isValid || status === "loading" || status === "success"}
+              className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all ${
+                isValid && status !== "loading" && status !== "success"
+                  ? "bg-accent text-black hover:opacity-90 shadow-[0_0_20px_rgba(0,206,0,0.25)]"
+                  : "bg-white/10 text-foreground-2/50 cursor-not-allowed"
+              }`}
+            >
+              {status === "loading" ? (
+                <>
+                  <span className="h-3.5 w-3.5 rounded-full border-2 border-current border-t-transparent animate-spin" />
+                  Wysyłanie...
+                </>
+              ) : (
+                <>
+                  <UserPlus size={15} />
+                  Wyślij zaproszenie
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function ZnajomiPage() {
   const [tab, setTab] = useState<"friends" | "pending">("friends");
   const [friends, setFriends] = useState<Friend[]>([]);
   const [incoming, setIncoming] = useState<FriendRequest[]>([]);
   const [outgoing, setOutgoing] = useState<FriendRequest[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showAddDialog, setShowAddDialog] = useState(false);
   const mounted = useRef(true);
 
   useEffect(() => {
@@ -102,21 +262,33 @@ export default function ZnajomiPage() {
     setOutgoing((prev) => prev.filter((r) => r.id !== requestId));
   }
 
+  function handleDialogSent() {
+    setShowAddDialog(false);
+    load();
+  }
+
   const pendingCount = incoming.length;
 
   return (
     <Page>
+      {showAddDialog && (
+        <AddFriendDialog
+          onClose={() => setShowAddDialog(false)}
+          onSent={handleDialogSent}
+        />
+      )}
+
       <div className="w-full flex flex-col items-center pt-[170px] pb-20 px-4">
         <div className="w-full max-w-2xl">
           <div className="flex items-center justify-between mb-6">
             <h1 className="text-2xl font-semibold text-foreground">Znajomi</h1>
-            <Link
-              href="/szukaj?type=users"
-              className="flex items-center gap-2 text-sm text-foreground-2 hover:text-accent transition-colors"
+            <button
+              onClick={() => setShowAddDialog(true)}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-accent/15 border border-accent/30 text-accent text-sm font-medium hover:bg-accent/25 hover:border-accent/50 transition-all"
             >
-              <Search size={16} />
-              Szukaj ludzi
-            </Link>
+              <UserPlus size={16} />
+              Dodaj znajomego
+            </button>
           </div>
 
           <div className="flex border-b border-white/10 mb-6">
@@ -145,12 +317,16 @@ export default function ZnajomiPage() {
             <div className="text-center py-16 text-foreground-2">Ładowanie...</div>
           ) : tab === "friends" ? (
             friends.length === 0 ? (
-              <div className="flex flex-col items-center py-20 gap-3 text-foreground-2">
+              <div className="flex flex-col items-center py-20 gap-4 text-foreground-2">
                 <Users size={48} className="opacity-30" />
                 <p className="text-base">Nie masz jeszcze żadnych znajomych.</p>
-                <Link href="/szukaj?type=users" className="text-accent hover:underline text-sm">
-                  Znajdź kogoś do dodania
-                </Link>
+                <button
+                  onClick={() => setShowAddDialog(true)}
+                  className="flex items-center gap-2 px-4 py-2 rounded-xl bg-accent/15 border border-accent/30 text-accent text-sm font-medium hover:bg-accent/25 transition-all"
+                >
+                  <UserPlus size={15} />
+                  Dodaj pierwszego znajomego
+                </button>
               </div>
             ) : (
               <div className="flex flex-col gap-3">

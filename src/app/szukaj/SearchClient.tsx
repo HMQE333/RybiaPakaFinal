@@ -9,7 +9,6 @@ import {
   Images,
   MessageSquare,
   Search,
-  Users,
   X,
 } from "lucide-react";
 
@@ -24,14 +23,6 @@ type FilterOption = {
 type SearchClientProps = {
   regions: FilterOption[];
   methods: FilterOption[];
-};
-
-type SearchResultUser = {
-  id: number;
-  handle: string;
-  avatarUrl: string | null;
-  region: string | null;
-  methods: string[];
 };
 
 type SearchResultThread = {
@@ -62,7 +53,6 @@ type SearchResultGallery = {
 
 type SearchResults = {
   query: string;
-  users: SearchResultUser[];
   threads: SearchResultThread[];
   gallery: SearchResultGallery[];
 };
@@ -157,10 +147,8 @@ export default function SearchClient({ regions, methods }: SearchClientProps) {
   const canSearch = trimmedQuery.length >= MIN_QUERY_LENGTH;
   const hasFilters = Boolean(regionId || methodId);
   const threadResults = results?.threads ?? [];
-  const userResults = results?.users ?? [];
   const galleryResults = results?.gallery ?? [];
-  const totalResults =
-    threadResults.length + userResults.length + galleryResults.length;
+  const totalResults = threadResults.length + galleryResults.length;
 
   const activeRegionLabel = useMemo(
     () => regions.find((region) => region.id === regionId)?.name ?? "",
@@ -277,12 +265,11 @@ export default function SearchClient({ regions, methods }: SearchClientProps) {
             Globalne wyszukiwanie
           </span>
           <h1 className="text-2xl md:text-3xl font-semibold text-foreground">
-            Wyszukiwarka forum, galerii i użytkowników
+            Wyszukiwarka forum i galerii
           </h1>
           <p className="text-sm text-foreground-2 max-w-2xl">
-            Szukaj tematów, zdjęć i profili w jednym miejscu. Filtruj po
-            regionie i metodzie wędkowania, aby szybciej znaleźć to, czego
-            szukasz.
+            Szukaj tematów i zdjęć w jednym miejscu. Filtruj po regionie
+            i metodzie wędkowania, aby szybciej znaleźć to, czego szukasz.
           </p>
         </div>
       </section>
@@ -297,7 +284,7 @@ export default function SearchClient({ regions, methods }: SearchClientProps) {
             <input
               value={query}
               onChange={(event) => setQuery(event.target.value)}
-              placeholder="Szukaj w forum, galerii i profilach..."
+              placeholder="Szukaj w forum i galerii..."
               className="w-full rounded-xl border border-white/10 bg-background-2/70 pl-9 pr-3 py-2.5 text-sm text-foreground placeholder:text-foreground-2/70 outline-none focus:border-accent/60"
             />
           </div>
@@ -393,7 +380,7 @@ export default function SearchClient({ regions, methods }: SearchClientProps) {
               )}
             </div>
             <div className="mt-1 text-xs text-foreground-3">
-              Użytkownicy: {userResults.length}
+              Forum: {threadResults.length} · Galeria: {galleryResults.length}
             </div>
           </div>
 
@@ -403,7 +390,7 @@ export default function SearchClient({ regions, methods }: SearchClientProps) {
             </div>
           )}
 
-          <div className="grid gap-6 lg:grid-cols-3">
+          <div className="grid gap-6 lg:grid-cols-2">
             <SectionCard
               title="Forum"
               count={threadResults.length}
@@ -522,66 +509,6 @@ export default function SearchClient({ regions, methods }: SearchClientProps) {
               })}
             </SectionCard>
 
-            <SectionCard
-              title="Użytkownicy"
-              count={userResults.length}
-              icon={Users}
-              isLoading={isLoading && !results}
-              emptyLabel="Brak wyników wśród użytkowników."
-            >
-              {userResults.map((user) => {
-                const previewMethods = user.methods.slice(0, 2);
-                const extraMethods = Math.max(0, user.methods.length - 2);
-                return (
-                  <Link
-                    key={user.id}
-                    href={`/profil/${encodeURIComponent(user.handle)}`}
-                    className="group flex items-center gap-3 rounded-xl border border-white/10 bg-background-2/60 p-3 transition-colors hover:border-accent/40"
-                  >
-                    <img
-                      src={user.avatarUrl ?? FALLBACK_AVATAR}
-                      alt={user.handle}
-                      loading="lazy"
-                      decoding="async"
-                    className="h-10 w-10 rounded-full object-cover border border-white/10"
-                    onError={(event) =>
-                      handleUploadImageError(
-                        event.currentTarget,
-                        "/artwork/404_user.png"
-                      )
-                    }
-                  />
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
-                        @{user.handle}
-                      </div>
-                      {user.region && (
-                        <div className="text-[11px] text-foreground-2">
-                          {user.region}
-                        </div>
-                      )}
-                      {previewMethods.length > 0 && (
-                        <div className="mt-1 flex flex-wrap items-center gap-1 text-[11px] text-foreground-2">
-                          {previewMethods.map((method) => (
-                            <span
-                              key={method}
-                              className="rounded-full border border-white/10 bg-background-3/70 px-2 py-0.5"
-                            >
-                              {method}
-                            </span>
-                          ))}
-                          {extraMethods > 0 && <span>+{extraMethods}</span>}
-                        </div>
-                      )}
-                    </div>
-                    <ArrowRight
-                      size={16}
-                      className="text-foreground-3 group-hover:text-accent"
-                    />
-                  </Link>
-                );
-              })}
-            </SectionCard>
           </div>
         </section>
       )}
