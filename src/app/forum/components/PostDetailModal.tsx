@@ -12,7 +12,6 @@ import {
   Pencil,
 } from "lucide-react";
 import CommentSection from "./CommentSection";
-import ForumReactionBar from "./ForumReactionBar";
 import { formatTimeAgo } from "./time";
 import { extractTags, filterMeta } from "./threadContent";
 import { handleUploadImageError } from "@/lib/imageFallback";
@@ -33,8 +32,6 @@ type Post = {
   canEdit?: boolean;
   canArchive?: boolean;
   archived?: boolean;
-  reactionCounts?: Record<string, number>;
-  myReactions?: string[];
 };
 
 type Comment = {
@@ -66,7 +63,6 @@ interface PostDetailModalProps {
   onEdit?: () => void;
   onArchive?: () => void;
   canComment?: boolean;
-  authenticated?: boolean;
 }
 
 export default function PostDetailModal({
@@ -85,7 +81,6 @@ export default function PostDetailModal({
   onEdit,
   onArchive,
   canComment,
-  authenticated = false,
 }: PostDetailModalProps) {
   const postId = post?.id ?? null;
   const metaSource = post?.meta ?? [];
@@ -335,38 +330,30 @@ export default function PostDetailModal({
             </div>
           )}
 
-          <div className="flex flex-col gap-2 py-3 border-t border-b border-white/10">
-            <div className="flex items-center gap-4 text-xs text-foreground-2">
-              <button
-                onClick={() => onToggleLike(post.id)}
-                className="flex items-center gap-2 hover:text-accent transition-colors interactive-press"
-                aria-pressed={post.liked}
-              >
-                <Heart
-                  size={18}
-                  className={post.liked ? "text-accent animate-like" : ""}
-                  fill={post.liked ? "currentColor" : "none"}
-                />
-                <span>{post.likes} polubień</span>
-              </button>
-              <button className="flex items-center gap-2 hover:text-blue-400 transition-colors interactive-press">
-                <MessageSquare size={18} />
-                <span>{displayedCommentsCount} komentarzy</span>
-              </button>
-              <button
-                onClick={() => onShare(post)}
-                className="flex items-center gap-2 hover:text-green-400 transition-colors interactive-press"
-              >
-                <Share2 size={18} />
-                <span>Udostępnij</span>
-              </button>
-            </div>
-            <ForumReactionBar
-              threadId={post.id}
-              initialCounts={post.reactionCounts ?? {}}
-              initialMine={post.myReactions ?? []}
-              authenticated={authenticated}
-            />
+          <div className="flex items-center gap-4 py-3 border-t border-b border-white/10 text-xs text-foreground-2">
+            <button
+              onClick={() => onToggleLike(post.id)}
+              className="flex items-center gap-2 hover:text-accent transition-colors interactive-press"
+              aria-pressed={post.liked}
+            >
+              <Heart
+                size={18}
+                className={post.liked ? "text-accent animate-like" : ""}
+                fill={post.liked ? "currentColor" : "none"}
+              />
+              <span>{post.likes} polubień</span>
+            </button>
+            <button className="flex items-center gap-2 hover:text-blue-400 transition-colors interactive-press">
+              <MessageSquare size={18} />
+              <span>{displayedCommentsCount} komentarzy</span>
+            </button>
+            <button
+              onClick={() => onShare(post)}
+              className="flex items-center gap-2 hover:text-green-400 transition-colors interactive-press"
+            >
+              <Share2 size={18} />
+              <span>Udostępnij</span>
+            </button>
           </div>
 
           <CommentSection

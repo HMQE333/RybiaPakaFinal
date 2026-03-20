@@ -41,8 +41,6 @@ type ForumPost = {
   canEdit?: boolean;
   canArchive?: boolean;
   archived?: boolean;
-  reactionCounts?: Record<string, number>;
-  myReactions?: string[];
 };
 
 type ForumComment = {
@@ -72,8 +70,6 @@ type ApiThread = {
   canEdit?: boolean;
   canArchive?: boolean;
   archived?: boolean;
-  reactionCounts?: Record<string, number>;
-  myReactions?: string[];
 };
 
 type ApiComment = {
@@ -134,8 +130,6 @@ function mapThread(thread: ApiThread): ForumPost {
     canEdit: thread.canEdit ?? false,
     canArchive: thread.canArchive ?? false,
     archived,
-    reactionCounts: thread.reactionCounts ?? {},
-    myReactions: thread.myReactions ?? [],
   };
 }
 
@@ -1184,7 +1178,6 @@ export default function ForumFeed() {
               onDelete={
                 post.canDelete ? () => handleDeletePost(post.id) : undefined
               }
-              authenticated={isAuthenticated}
             />
           ))}
 
@@ -1246,7 +1239,6 @@ export default function ForumFeed() {
             : undefined
         }
         canComment={isAuthenticated && !selectedPost?.archived}
-        authenticated={isAuthenticated}
       />
 
       <EditPostModal
