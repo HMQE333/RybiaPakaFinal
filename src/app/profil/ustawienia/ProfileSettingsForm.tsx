@@ -754,49 +754,90 @@ export default function ProfileSettingsForm({
       }
     }
 
-    let resolvedBannerUrl: string | null =
+    const expectedBannerValue =
       bannerSourceType === "preset" && bannerPresetId
         ? `preset:${bannerPresetId}`
-        : bannerSourceType === "upload"
+        : bannerSourceType === "upload" && !bannerUploadBlob
           ? bannerPreviewUrl || null
-          : null;
+          : bannerSourceType === null
+            ? null
+            : null;
 
-    if (bannerUploadBlob && bannerFileName) {
+    const bannerNeedsUpdate =
+      Boolean(bannerUploadBlob) ||
+      expectedBannerValue !== bannerInitialRef.current;
+
+    if (bannerNeedsUpdate) {
       setBannerMessage(null);
       try {
-        const fd = new FormData();
-        fd.append("file", new File([bannerUploadBlob], bannerFileName, { type: bannerUploadBlob.type || "image/jpeg" }));
-        const res = await fetch("/api/profile/banner", {
-          method: "POST",
-          credentials: "include",
-          body: fd,
-        });
-        if (!res.ok) {
+        if (bannerUploadBlob && bannerFileName) {
+          const fd = new FormData();
+          fd.append("file", new File([bannerUploadBlob], bannerFileName, { type: bannerUploadBlob.type || "image/jpeg" }));
+          const res = await fetch("/api/profile/banner", {
+            method: "POST",
+            credentials: "include",
+            body: fd,
+          });
+          if (!res.ok) {
+            const data = await res.json().catch(() => ({}));
+            const code = data?.error;
+            setBannerMessage(
+              code === "FILE_TOO_LARGE" ? "Plik banera jest za duży (max 5 MB)."
+              : code === "UNSUPPORTED_FILE_TYPE" ? "Nieobsługiwany format pliku banera."
+              : "Nie udało się zapisać banera."
+            );
+            setStatusTone("error");
+            setStatusMessage("Nie udało się zapisać banera.");
+            setIsSaving(false);
+            return;
+          }
           const data = await res.json().catch(() => ({}));
-          const code = data?.error;
-          setBannerMessage(
-            code === "FILE_TOO_LARGE" ? "Plik banera jest za duży (max 5 MB)."
-            : code === "UNSUPPORTED_FILE_TYPE" ? "Nieobsługiwany format pliku banera."
-            : "Nie udało się zapisać banera."
-          );
-          setStatusTone("error");
-          setStatusMessage("Nie udało się zapisać banera.");
-          setIsSaving(false);
-          return;
+          const savedUrl = data?.bannerUrl ?? null;
+          setBannerUploadBlob(null);
+          setBannerFileName(null);
+          if (bannerBlobUrlRef.current) {
+            URL.revokeObjectURL(bannerBlobUrlRef.current);
+            bannerBlobUrlRef.current = null;
+          }
+          if (savedUrl) {
+            setBannerPreviewUrl(savedUrl);
+            setBannerSourceType("upload");
+          }
+          bannerInitialRef.current = savedUrl ?? "";
+        } else if (bannerSourceType === "preset" && bannerPresetId) {
+          const res = await fetch("/api/profile/banner", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            credentials: "include",
+            body: JSON.stringify({ presetId: bannerPresetId }),
+          });
+          if (!res.ok) {
+            const data = await res.json().catch(() => ({}));
+            const code = data?.error;
+            setBannerMessage(
+              code === "INVALID_PRESET" ? "Nieprawidłowy motyw banera."
+              : "Nie udało się zapisać banera."
+            );
+            setStatusTone("error");
+            setStatusMessage("Nie udało się zapisać banera.");
+            setIsSaving(false);
+            return;
+          }
+          bannerInitialRef.current = `preset:${bannerPresetId}`;
+        } else if (bannerSourceType === null && bannerInitialRef.current) {
+          const res = await fetch("/api/profile/banner", {
+            method: "DELETE",
+            credentials: "include",
+          });
+          if (!res.ok) {
+            setBannerMessage("Nie udało się usunąć banera.");
+            setStatusTone("error");
+            setStatusMessage("Nie udało się usunąć banera.");
+            setIsSaving(false);
+            return;
+          }
+          bannerInitialRef.current = "";
         }
-        const data = await res.json().catch(() => ({}));
-        resolvedBannerUrl = data?.bannerUrl ?? null;
-        setBannerUploadBlob(null);
-        setBannerFileName(null);
-        if (bannerBlobUrlRef.current) {
-          URL.revokeObjectURL(bannerBlobUrlRef.current);
-          bannerBlobUrlRef.current = null;
-        }
-        if (resolvedBannerUrl) {
-          setBannerPreviewUrl(resolvedBannerUrl);
-          setBannerSourceType("upload");
-        }
-        bannerInitialRef.current = resolvedBannerUrl ?? "";
       } catch {
         setStatusTone("error");
         setStatusMessage("Nie udało się zapisać banera.");
@@ -884,14 +925,12 @@ export default function ProfileSettingsForm({
       age?: number | null;
       ageRange?: string | null;
       pronouns?: string | null;
-      bannerUrl?: string | null;
       regionId?: string | null;
     } = {
       bio: trimmedBio || null,
       age: parsedAge !== null ? parsedAge : null,
       ageRange: ageRange.trim() || null,
       pronouns: pronouns.trim() || null,
-      bannerUrl: resolvedBannerUrl,
       regionId: regionId || null,
     };
 

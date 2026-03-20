@@ -142,8 +142,13 @@ export default function OnboardingWizard({ user, methods }: Props) {
   const [avatarDragActive, setAvatarDragActive] = useState(false);
 
   const [bannerFile, setBannerFile] = useState<File | null>(null);
-  const [bannerPreview, setBannerPreview] = useState(user.bannerUrl ?? "");
-  const [bannerPresetId, setBannerPresetId] = useState<string | null>(null);
+  const initialBannerIsPreset = (user.bannerUrl ?? "").startsWith("preset:");
+  const [bannerPreview, setBannerPreview] = useState(
+    initialBannerIsPreset ? "" : (user.bannerUrl ?? "")
+  );
+  const [bannerPresetId, setBannerPresetId] = useState<string | null>(
+    initialBannerIsPreset ? (user.bannerUrl ?? "").slice("preset:".length) : null
+  );
   const [bannerDragActive, setBannerDragActive] = useState(false);
 
   const methodNames = selectedMethods
