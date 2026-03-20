@@ -76,9 +76,14 @@ const cacheHeaders = [
   },
 ];
 
+const replitDevDomain = process.env.REPLIT_DEV_DOMAIN ?? "";
+const allowedDevOrigins = replitDevDomain
+  ? [replitDevDomain]
+  : [];
+
 const nextConfig: NextConfig = {
   devIndicators: false,
-  allowedDevOrigins: ["*.replit.dev", "*.repl.co"],
+  allowedDevOrigins,
   images: {
     formats: ["image/avif", "image/webp"],
   },
