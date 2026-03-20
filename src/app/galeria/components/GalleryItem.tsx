@@ -84,7 +84,7 @@ export default function GalleryItem({ item, onSelect }: GalleryItemProps) {
                   onError={(event) =>
                     handleUploadImageError(
                       event.currentTarget,
-                      "/artwork/404_user.png"
+                      "/artwork/avatar_default.svg"
                     )
                   }
                 />

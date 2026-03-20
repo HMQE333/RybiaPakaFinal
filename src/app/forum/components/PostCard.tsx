@@ -80,7 +80,7 @@ export default function PostCard({
           onError={(event) =>
             handleUploadImageError(
               event.currentTarget,
-              "/artwork/404_user.png"
+              "/artwork/avatar_default.svg"
             )
           }
         />

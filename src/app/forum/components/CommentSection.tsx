@@ -204,7 +204,7 @@ export default function CommentSection({
             onError={(event) =>
               handleUploadImageError(
                 event.currentTarget,
-                "/artwork/404_user.png"
+                "/artwork/avatar_default.svg"
               )
             }
           />
@@ -308,7 +308,7 @@ export default function CommentSection({
       {shouldShowComposer && (
         <form onSubmit={handleSubmit} className="flex gap-3 mb-6">
           <img
-            src="/artwork/404_user.png"
+            src="/artwork/avatar_default.svg"
             alt="Gość"
             loading="lazy"
             decoding="async"

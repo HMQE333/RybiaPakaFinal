@@ -144,7 +144,7 @@ const REPORT_OPTIONS = [
   },
 ];
 
-const FALLBACK_AVATAR = "/artwork/404_user.png";
+const FALLBACK_AVATAR = "/artwork/avatar_default.svg";
 
 const fishTrail = [
   { top: "6%", duration: "18s", delay: "0s" },
@@ -1507,7 +1507,7 @@ function GalleryPageInner() {
                         onError={(event) =>
                           handleUploadImageError(
                             event.currentTarget,
-                            "/artwork/404_user.png"
+                            "/artwork/avatar_default.svg"
                           )
                         }
                       />
@@ -1751,7 +1751,7 @@ function GalleryPageInner() {
                     onError={(event) =>
                       handleUploadImageError(
                         event.currentTarget,
-                        "/artwork/404_user.png"
+                        "/artwork/avatar_default.svg"
                       )
                     }
                   />
@@ -1955,7 +1955,7 @@ function GalleryPageInner() {
                           onError={(event) =>
                             handleUploadImageError(
                               event.currentTarget,
-                              "/artwork/404_user.png"
+                              "/artwork/avatar_default.svg"
                             )
                           }
                         />
@@ -2068,7 +2068,7 @@ function GalleryPageInner() {
                                 onError={(event) =>
                                   handleUploadImageError(
                                     event.currentTarget,
-                                    "/artwork/404_user.png"
+                                    "/artwork/avatar_default.svg"
                                   )
                                 }
                               />

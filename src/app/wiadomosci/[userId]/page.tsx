@@ -201,10 +201,10 @@ export default function DmPage({
               <Link href={`/profil/${other.username ?? other.id}`} className="flex items-center gap-3 hover:opacity-80 transition-opacity">
                 <div className="h-9 w-9 rounded-full overflow-hidden bg-background-2 shrink-0 border border-white/10">
                   <UploadImage
-                    src={other.avatarUrl ?? "/artwork/404_user.png"}
+                    src={other.avatarUrl ?? "/artwork/avatar_default.svg"}
                     alt={displayName(other)}
                     className="h-full w-full object-cover"
-                    fallbackSrc="/artwork/404_user.png"
+                    fallbackSrc="/artwork/avatar_default.svg"
                   />
                 </div>
                 <span className="font-medium text-foreground">@{displayName(other)}</span>
@@ -247,10 +247,10 @@ export default function DmPage({
                       {!msg.isMine && !isSameAuthor && (
                         <div className="h-7 w-7 rounded-full overflow-hidden bg-background-2 shrink-0 border border-white/10">
                           <UploadImage
-                            src={msg.sender.avatarUrl ?? "/artwork/404_user.png"}
+                            src={msg.sender.avatarUrl ?? "/artwork/avatar_default.svg"}
                             alt={displayName(msg.sender)}
                             className="h-full w-full object-cover"
-                            fallbackSrc="/artwork/404_user.png"
+                            fallbackSrc="/artwork/avatar_default.svg"
                           />
                         </div>
                       )}

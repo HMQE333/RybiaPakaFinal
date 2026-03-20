@@ -138,7 +138,7 @@ export default function ProfileSettingsForm({
     [selectedMethods]
   );
   const displayName = userHandle || "Użytkownik";
-  const avatarPreview = avatarPreviewUrl.trim() || "/artwork/404_user.png";
+  const avatarPreview = avatarPreviewUrl.trim() || "/artwork/avatar_default.svg";
   const regionLabel = useMemo(
     () => regions.find((region) => region.id === regionId)?.name ?? "Nie ustawiono",
     [regions, regionId]
@@ -1216,7 +1216,7 @@ export default function ProfileSettingsForm({
                           loading="lazy"
                           decoding="async"
                           className="h-full w-full object-cover"
-                          fallbackSrc="/artwork/404_user.png"
+                          fallbackSrc="/artwork/avatar_default.svg"
                         />
                       </div>
                       <div className="flex-1 min-w-0">
@@ -1562,7 +1562,7 @@ export default function ProfileSettingsForm({
                     decoding="async"
                     className="h-full w-full object-cover"
                     onError={(event) => {
-                      event.currentTarget.src = "/artwork/404_user.png";
+                      event.currentTarget.src = "/artwork/avatar_default.svg";
                     }}
                   />
                 </div>

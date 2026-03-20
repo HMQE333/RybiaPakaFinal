@@ -69,7 +69,7 @@ type SectionCardProps = {
 const MIN_QUERY_LENGTH = 2;
 const DEBOUNCE_MS = 300;
 const EXCERPT_LENGTH = 160;
-const FALLBACK_AVATAR = "/artwork/404_user.png";
+const FALLBACK_AVATAR = "/artwork/avatar_default.svg";
 
 const normalizeText = (value: string) =>
   value.trim().replace(/\s+/g, " ");
@@ -416,7 +416,7 @@ export default function SearchClient({ regions, methods }: SearchClientProps) {
                     onError={(event) =>
                       handleUploadImageError(
                         event.currentTarget,
-                        "/artwork/404_user.png"
+                        "/artwork/avatar_default.svg"
                       )
                     }
                   />

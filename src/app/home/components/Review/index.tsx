@@ -1,7 +1,7 @@
 import UploadImage from "@/components/UploadImage";
 import type { ReviewEntry } from "@/lib/reviewsStore";
 
-const FALLBACK_AVATAR = "/artwork/404_user.png";
+const FALLBACK_AVATAR = "/artwork/avatar_default.svg";
 
 interface ReviewProps {
   review: ReviewEntry;

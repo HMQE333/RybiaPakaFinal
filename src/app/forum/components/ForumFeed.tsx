@@ -84,7 +84,7 @@ type ApiComment = {
 };
 
 const FALLBACK_AUTHOR = "Gość";
-const FALLBACK_AVATAR = "/artwork/404_user.png";
+const FALLBACK_AVATAR = "/artwork/avatar_default.svg";
 const ARCHIVE_TAG = "Archiwum";
 
 const CATEGORIES = [

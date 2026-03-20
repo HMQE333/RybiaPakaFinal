@@ -91,10 +91,10 @@ export default function WiadomosciPage() {
                 >
                   <div className="relative h-12 w-12 rounded-full overflow-hidden bg-background-2 shrink-0 border border-white/10">
                     <UploadImage
-                      src={conv.other.avatarUrl ?? "/artwork/404_user.png"}
+                      src={conv.other.avatarUrl ?? "/artwork/avatar_default.svg"}
                       alt={displayName(conv.other)}
                       className="h-full w-full object-cover"
-                      fallbackSrc="/artwork/404_user.png"
+                      fallbackSrc="/artwork/avatar_default.svg"
                     />
                     {conv.unreadCount > 0 && (
                       <span className="absolute -top-0.5 -right-0.5 bg-accent text-black text-[10px] font-bold rounded-full h-4.5 min-w-[18px] flex items-center justify-center px-1 leading-none">

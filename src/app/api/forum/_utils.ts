@@ -12,7 +12,7 @@ type AuthorShape = {
   image?: string | null;
 };
 
-const DEFAULT_AVATAR = "/artwork/404_user.png";
+const DEFAULT_AVATAR = "/artwork/avatar_default.svg";
 const GUEST_EMAIL = "guest@rybiapaka.local";
 const GUEST_NAME = "Gość";
 const GUEST_NICK = "gosc";

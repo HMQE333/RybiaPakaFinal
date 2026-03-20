@@ -98,12 +98,12 @@ export default function ProfileView({
                          bg-background-3 shadow-[0_4px_24px_rgba(0,0,0,0.45)]"
             >
               <UploadImage
-                src={user.avatar ?? "/artwork/404_user.png"}
+                src={user.avatar ?? "/artwork/avatar_default.svg"}
                 alt={`Avatar ${displayName}`}
                 loading="lazy"
                 decoding="async"
                 className="h-full w-full object-cover"
-                fallbackSrc="/artwork/404_user.png"
+                fallbackSrc="/artwork/avatar_default.svg"
               />
               <OnlineStatusDot
                 status={user.status}

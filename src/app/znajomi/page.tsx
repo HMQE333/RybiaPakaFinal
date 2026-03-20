@@ -34,10 +34,10 @@ function Avatar({ user }: { user: UserSnippet }) {
   return (
     <div className="h-11 w-11 rounded-full overflow-hidden bg-background-2 shrink-0 border border-white/10">
       <UploadImage
-        src={user.avatarUrl ?? "/artwork/404_user.png"}
+        src={user.avatarUrl ?? "/artwork/avatar_default.svg"}
         alt={displayName(user)}
         className="h-full w-full object-cover"
-        fallbackSrc="/artwork/404_user.png"
+        fallbackSrc="/artwork/avatar_default.svg"
       />
     </div>
   );

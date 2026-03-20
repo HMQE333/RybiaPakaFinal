@@ -132,7 +132,7 @@ const CUSTOM_EMOJI_BY_CODE = new Map<string, CustomEmoji>(
   CUSTOM_EMOJIS.map((emoji) => [emoji.code, emoji])
 );
 
-const FALLBACK_AVATAR = "/artwork/404_user.png";
+const FALLBACK_AVATAR = "/artwork/avatar_default.svg";
 
 function ChatPageInner() {
   const searchParams = useSearchParams();
