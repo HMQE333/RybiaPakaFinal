@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Megaphone, MessageSquare, Images, Menu } from "lucide-react";
+import { Home, Megaphone, MessageSquare, Images, Menu, MapPin } from "lucide-react";
 
 import { cn } from "@/utils";
 import SearchBar from "./SearchBar";
@@ -20,6 +20,7 @@ const navItems: NavItem[] = [
   { label: "Dyskusje", href: "/dyskusje", icon: Megaphone },
   { label: "Forum", href: "/forum", icon: MessageSquare },
   { label: "Galeria", href: "/galeria", icon: Images },
+  { label: "Mapa Łowisk", href: "/mapa-lowisk", icon: MapPin },
 ];
 
 export default function Navigation() {

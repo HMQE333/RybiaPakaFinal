@@ -64,6 +64,7 @@ model User {
   reportsHandled Report[]            @relation("ReportHandler")
   adminLogs      AdminLog[]
   notificationSetting UserNotificationSetting?
+  fishingSpots        FishingSpot[]
 
   // existing relations
   accounts           Account[]
@@ -199,6 +200,21 @@ model FishingMethod {
   id    String              @id @default(cuid())
   name  String              @unique
   users UserFishingMethod[]
+}
+
+model FishingSpot {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  lat         Float
+  lng         Float
+  type        String?
+  addedById   Int?
+  createdAt   DateTime @default(now())
+
+  addedBy User? @relation(fields: [addedById], references: [id], onDelete: SetNull)
+
+  @@index([addedById])
 }
 
 model UserFishingMethod {
