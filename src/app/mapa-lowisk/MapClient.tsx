@@ -1,388 +1,553 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import {
-  MapPin,
-  Fish,
-  X,
-  Plus,
-  Loader2,
   Search,
-  ChevronLeft,
-  ChevronRight,
-  Droplets,
-  Waves,
+  Fish,
+  Star,
+  Clock,
+  Trophy,
+  SlidersHorizontal,
+  X,
+  MapPin,
+  Flame,
+  Zap,
+  ChevronDown,
 } from "lucide-react";
 import { cn } from "@/utils";
-import type { FishingSpot } from "./MapView";
+import SpotDetailPanel from "./SpotDetailPanel";
+import { MOCK_SPOTS, TYPE_CONFIG } from "./mockData";
+import type { MockSpot, SpotType } from "./mockData";
 
 const MapView = dynamic(() => import("./MapView"), { ssr: false });
 
-const SPOT_TYPES = [
-  { value: "rzeka", label: "Rzeka", color: "#3b82f6" },
-  { value: "jezioro", label: "Jezioro", color: "#06b6d4" },
-  { value: "zbiornik", label: "Zbiornik", color: "#8b5cf6" },
-  { value: "morze", label: "Morze", color: "#0ea5e9" },
-  { value: "staw", label: "Staw", color: "#22c55e" },
-  { value: "inne", label: "Inne", color: "#f59e0b" },
+const VOIVODESHIPS = [
+  "Wszystkie",
+  "Dolnośląskie",
+  "Kujawsko-Pomorskie",
+  "Lubelskie",
+  "Lubuskie",
+  "Łódzkie",
+  "Małopolskie",
+  "Mazowieckie",
+  "Opolskie",
+  "Podkarpackie",
+  "Podlaskie",
+  "Pomorskie",
+  "Śląskie",
+  "Świętokrzyskie",
+  "Warmińsko-Mazurskie",
+  "Wielkopolskie",
+  "Zachodniopomorskie",
 ];
 
-function typeColor(type: string | null) {
-  return SPOT_TYPES.find((t) => t.value === type)?.color ?? "#f59e0b";
+function StarDisplay({ value }: { value: number }) {
+  return (
+    <span className="flex items-center gap-0.5">
+      <Star size={11} className="fill-amber-400 text-amber-400" />
+      <span className="text-xs font-semibold text-amber-400">{value.toFixed(1)}</span>
+    </span>
+  );
 }
 
-function typeLabel(type: string | null) {
-  return SPOT_TYPES.find((t) => t.value === type)?.label ?? "Inne";
+function SpotCard({
+  spot,
+  selected,
+  onClick,
+}: {
+  spot: MockSpot;
+  selected: boolean;
+  onClick: () => void;
+}) {
+  const cfg = TYPE_CONFIG[spot.type];
+  return (
+    <button
+      onClick={onClick}
+      className={cn(
+        "w-full text-left px-4 py-3.5 flex gap-3 items-start transition-all border-b border-white/5 hover:bg-white/4",
+        selected && "bg-accent/6 border-l-2 border-l-accent hover:bg-accent/8"
+      )}
+    >
+      {/* Color strip */}
+      <div
+        className="mt-1 h-2.5 w-2.5 rounded-full shrink-0 ring-2 ring-offset-1 ring-offset-background-2"
+        style={{ backgroundColor: cfg.color, boxShadow: `0 0 6px ${cfg.color}80` }}
+      />
+      <div className="min-w-0 flex-1">
+        <div className="flex items-start justify-between gap-1">
+          <p
+            className={cn(
+              "text-sm font-semibold leading-tight truncate transition-colors",
+              selected ? "text-accent" : "text-foreground"
+            )}
+          >
+            {spot.name}
+          </p>
+          <StarDisplay value={spot.rating} />
+        </div>
+        <div className="flex items-center gap-2 mt-0.5">
+          <span
+            className="text-[10px] font-medium rounded-full px-1.5 py-0.5 border"
+            style={{ color: cfg.color, backgroundColor: cfg.bg, borderColor: cfg.border }}
+          >
+            {cfg.label}
+          </span>
+          <span className="text-[11px] text-foreground-2 truncate">{spot.voivodeship}</span>
+        </div>
+        <div className="flex items-center gap-3 mt-1.5">
+          <span className="flex items-center gap-1 text-[10px] text-foreground-2/70">
+            <Fish size={9} className="text-accent/70" />
+            {spot.fishSpecies.slice(0, 2).join(", ")}
+            {spot.fishSpecies.length > 2 && ` +${spot.fishSpecies.length - 2}`}
+          </span>
+          <span className="flex items-center gap-1 text-[10px] text-foreground-2/70">
+            <Clock size={9} />
+            {spot.lastActivity}
+          </span>
+        </div>
+      </div>
+    </button>
+  );
 }
 
-type Props = {
-  initialSpots: FishingSpot[];
-  isLoggedIn: boolean;
-};
+type SortMode = "aktywnosc" | "ocena" | "opinie";
 
-export default function MapClient({ initialSpots, isLoggedIn }: Props) {
-  const [spots, setSpots] = useState<FishingSpot[]>(initialSpots);
+export default function MapClient() {
+  const [selectedId, setSelectedId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
-  const [typeFilter, setTypeFilter] = useState<string | null>(null);
+  const [typeFilter, setTypeFilter] = useState<SpotType | null>(null);
+  const [voivodeshipFilter, setVoivodeshipFilter] = useState("Wszystkie");
+  const [sortMode, setSortMode] = useState<SortMode>("aktywnosc");
+  const [showFilters, setShowFilters] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [addMode, setAddMode] = useState(false);
-  const [pendingCoords, setPendingCoords] = useState<{
-    lat: number;
-    lng: number;
-  } | null>(null);
-  const [form, setForm] = useState({
-    name: "",
-    description: "",
-    type: "inne",
-  });
-  const [saving, setSaving] = useState(false);
-  const [saveError, setSaveError] = useState<string | null>(null);
+  const [mobileTab, setMobileTab] = useState<"lista" | "mapa">("mapa");
 
-  const handleMapClick = useCallback(
-    (lat: number, lng: number) => {
-      if (!addMode) return;
-      setPendingCoords({ lat, lng });
-    },
-    [addMode]
+  const selectedSpot = useMemo(
+    () => MOCK_SPOTS.find((s) => s.id === selectedId) ?? null,
+    [selectedId]
   );
 
-  const filteredSpots = spots.filter((s) => {
-    if (
-      search.trim() &&
-      !s.name.toLowerCase().includes(search.trim().toLowerCase())
-    )
-      return false;
-    if (typeFilter && s.type !== typeFilter) return false;
-    return true;
-  });
+  const filteredSpots = useMemo(() => {
+    let spots = MOCK_SPOTS;
+    if (search.trim()) {
+      const q = search.toLowerCase();
+      spots = spots.filter(
+        (s) =>
+          s.name.toLowerCase().includes(q) ||
+          s.voivodeship.toLowerCase().includes(q) ||
+          s.fishSpecies.some((f) => f.toLowerCase().includes(q))
+      );
+    }
+    if (typeFilter) spots = spots.filter((s) => s.type === typeFilter);
+    if (voivodeshipFilter !== "Wszystkie")
+      spots = spots.filter((s) => s.voivodeship === voivodeshipFilter);
 
-  const cancelAdd = () => {
-    setAddMode(false);
-    setPendingCoords(null);
-    setForm({ name: "", description: "", type: "inne" });
-    setSaveError(null);
-  };
+    switch (sortMode) {
+      case "ocena":
+        return [...spots].sort((a, b) => b.rating - a.rating);
+      case "opinie":
+        return [...spots].sort((a, b) => b.reviewCount - a.reviewCount);
+      default:
+        return spots;
+    }
+  }, [search, typeFilter, voivodeshipFilter, sortMode]);
 
-  const handleSave = async () => {
-    if (!pendingCoords) {
-      setSaveError("Kliknij na mapie, aby wybrać lokalizację łowiska.");
-      return;
-    }
-    if (!form.name.trim() || form.name.trim().length < 2) {
-      setSaveError("Nazwa łowiska musi mieć co najmniej 2 znaki.");
-      return;
-    }
-    setSaving(true);
-    setSaveError(null);
-    try {
-      const res = await fetch("/api/mapa-lowisk", {
-        method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: form.name.trim(),
-          description: form.description.trim() || null,
-          type: form.type,
-          lat: pendingCoords.lat,
-          lng: pendingCoords.lng,
-        }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        const msgs: Record<string, string> = {
-          INVALID_NAME: "Nazwa jest za krótka lub za długa (2–100 znaków).",
-          INVALID_COORDS: "Nieprawidłowe współrzędne.",
-          COORDS_OUT_OF_POLAND:
-            "Łowisko musi znajdować się na terenie Polski.",
-          UNAUTHORIZED: "Musisz być zalogowany, aby dodać łowisko.",
-        };
-        setSaveError(msgs[data?.error] ?? "Błąd podczas zapisywania.");
-        return;
-      }
-      setSpots((prev) => [data.spot, ...prev]);
-      cancelAdd();
-    } catch {
-      setSaveError("Błąd połączenia. Spróbuj ponownie.");
-    } finally {
-      setSaving(false);
-    }
-  };
+  const topRated = useMemo(
+    () => [...MOCK_SPOTS].sort((a, b) => b.rating - a.rating).slice(0, 3),
+    []
+  );
+  const recentlyActive = useMemo(() => MOCK_SPOTS.slice(0, 3), []);
+
+  const handleSelectSpot = useCallback((id: string) => {
+    setSelectedId(id);
+    setMobileTab("mapa");
+  }, []);
+
+  const handleClosePanel = useCallback(() => setSelectedId(null), []);
 
   return (
-    <div className="flex h-full w-full overflow-hidden">
-      {/* Sidebar toggle (mobile/collapsed) */}
-      <button
-        onClick={() => setSidebarOpen((v) => !v)}
-        className={cn(
-          "absolute z-20 top-1/2 -translate-y-1/2 flex h-8 w-5 items-center justify-center rounded-r-lg border border-l-0 border-white/10 bg-background-2 text-foreground-2 hover:text-foreground transition-all shadow-lg",
-          sidebarOpen ? "left-[320px]" : "left-0"
-        )}
-        style={{ transition: "left 0.25s" }}
-        aria-label={sidebarOpen ? "Zwiń panel" : "Rozwiń panel"}
-      >
-        {sidebarOpen ? (
-          <ChevronLeft size={14} />
-        ) : (
-          <ChevronRight size={14} />
-        )}
-      </button>
-
-      {/* Left sidebar */}
+    <div className="flex h-full w-full overflow-hidden relative">
+      {/* ── SIDEBAR ────────────────────────────────────────────────── */}
       <aside
         className={cn(
-          "relative z-10 flex flex-col h-full bg-background-2 border-r border-white/8 transition-all duration-250 shrink-0",
-          sidebarOpen ? "w-[320px]" : "w-0 overflow-hidden"
+          "relative z-10 flex flex-col h-full bg-background-2 border-r border-white/8 transition-all duration-300 shrink-0",
+          "hidden lg:flex",
+          sidebarOpen ? "w-[340px]" : "w-0 overflow-hidden pointer-events-none"
         )}
       >
-        <div className="flex flex-col h-full min-w-[320px]">
-          {/* Sidebar header */}
-          <div className="px-4 pt-4 pb-3 border-b border-white/8">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <Fish size={18} className="text-accent" />
-                <h1 className="text-sm font-semibold text-foreground">
-                  Łowiska
-                </h1>
+        <div className="flex flex-col h-full min-w-[340px]">
+          {/* Header */}
+          <div className="px-4 pt-4 pb-0 border-b border-white/8">
+            {/* Title */}
+            <div className="flex items-center gap-2 mb-3">
+              <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-accent/15 border border-accent/30">
+                <Fish size={14} className="text-accent" />
               </div>
-              <span className="text-xs text-foreground-2">
-                {filteredSpots.length}{" "}
-                {filteredSpots.length === 1 ? "łowisko" : "łowisk"}
+              <h1 className="text-sm font-bold text-foreground">Łowiska</h1>
+              <span className="ml-auto text-xs text-foreground-2 bg-white/5 border border-white/8 rounded-full px-2 py-0.5">
+                {filteredSpots.length}
               </span>
             </div>
 
             {/* Search */}
-            <div className="relative">
-              <Search
-                size={13}
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-foreground-2"
-              />
+            <div className="relative mb-3">
+              <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-foreground-2" />
               <input
                 type="text"
-                placeholder="Szukaj łowiska..."
+                placeholder="Szukaj łowiska, gatunku..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full rounded-lg border border-white/10 bg-background-3/60 pl-8 pr-3 py-2 text-xs text-foreground placeholder:text-foreground-2/60 focus:border-accent/50 focus:outline-none"
+                className="w-full rounded-xl border border-white/10 bg-background-3/60 pl-8 pr-8 py-2 text-xs text-foreground placeholder:text-foreground-2/50 focus:border-accent/50 focus:outline-none transition-colors"
               />
+              {search && (
+                <button
+                  onClick={() => setSearch("")}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-foreground-2 hover:text-foreground"
+                >
+                  <X size={12} />
+                </button>
+              )}
             </div>
 
-            {/* Type filters */}
-            <div className="mt-2 flex flex-wrap gap-1.5">
+            {/* Type filter tabs */}
+            <div className="flex gap-1.5 mb-3">
               <button
                 onClick={() => setTypeFilter(null)}
                 className={cn(
-                  "rounded-full px-2.5 py-0.5 text-[11px] border transition-colors",
+                  "flex-1 rounded-lg py-1.5 text-[11px] font-medium transition-all border",
                   typeFilter === null
-                    ? "border-accent/50 bg-accent/15 text-accent"
-                    : "border-white/10 text-foreground-2 hover:border-white/20"
+                    ? "border-white/20 bg-white/8 text-foreground"
+                    : "border-white/8 text-foreground-2 hover:border-white/15"
                 )}
               >
                 Wszystkie
               </button>
-              {SPOT_TYPES.map((t) => (
-                <button
-                  key={t.value}
-                  onClick={() =>
-                    setTypeFilter((prev) =>
-                      prev === t.value ? null : t.value
-                    )
-                  }
-                  className={cn(
-                    "rounded-full px-2.5 py-0.5 text-[11px] border transition-colors",
-                    typeFilter === t.value
-                      ? "border-white/20 text-white"
-                      : "border-white/10 text-foreground-2 hover:border-white/20"
-                  )}
-                  style={
-                    typeFilter === t.value
-                      ? { backgroundColor: t.color + "33", borderColor: t.color + "66", color: t.color }
-                      : {}
-                  }
-                >
-                  {t.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Spots list */}
-          <div className="flex-1 overflow-y-auto">
-            {filteredSpots.length === 0 ? (
-              <div className="flex flex-col items-center justify-center gap-3 py-12 text-foreground-2">
-                <MapPin size={28} className="opacity-30" />
-                <p className="text-xs">
-                  {spots.length === 0
-                    ? "Brak łowisk. Bądź pierwszy i dodaj swoje!"
-                    : "Brak wyników dla wybranych filtrów."}
-                </p>
-              </div>
-            ) : (
-              <ul className="divide-y divide-white/5">
-                {filteredSpots.map((spot) => (
-                  <li
-                    key={spot.id}
-                    className="px-4 py-3 hover:bg-white/4 transition-colors"
+              {(Object.keys(TYPE_CONFIG) as SpotType[]).map((t) => {
+                const cfg = TYPE_CONFIG[t];
+                return (
+                  <button
+                    key={t}
+                    onClick={() => setTypeFilter((prev) => (prev === t ? null : t))}
+                    className={cn(
+                      "flex-1 rounded-lg py-1.5 text-[11px] font-medium transition-all border"
+                    )}
+                    style={
+                      typeFilter === t
+                        ? {
+                            backgroundColor: cfg.bg,
+                            borderColor: cfg.border,
+                            color: cfg.color,
+                          }
+                        : {
+                            borderColor: "rgba(255,255,255,0.08)",
+                            color: "#99a1af",
+                          }
+                    }
                   >
-                    <div className="flex items-start gap-2">
-                      <span
-                        className="mt-0.5 h-2.5 w-2.5 rounded-full shrink-0"
-                        style={{ backgroundColor: typeColor(spot.type) }}
-                      />
-                      <div className="min-w-0 flex-1">
-                        <p className="text-sm font-medium text-foreground leading-tight truncate">
-                          {spot.name}
-                        </p>
-                        <p className="text-[11px] text-foreground-2 mt-0.5">
-                          {typeLabel(spot.type)}
-                          {spot.addedBy?.username &&
-                            ` · @${spot.addedBy.username}`}
-                        </p>
-                        {spot.description && (
-                          <p className="text-xs text-foreground-2/70 mt-1 line-clamp-2">
-                            {spot.description}
-                          </p>
+                    {cfg.label}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Advanced filters toggle */}
+            <button
+              onClick={() => setShowFilters((v) => !v)}
+              className="flex w-full items-center justify-between py-2 text-xs text-foreground-2 hover:text-foreground transition-colors"
+            >
+              <span className="flex items-center gap-1.5">
+                <SlidersHorizontal size={11} />
+                Filtry zaawansowane
+              </span>
+              <ChevronDown
+                size={12}
+                className={cn("transition-transform", showFilters && "rotate-180")}
+              />
+            </button>
+
+            {/* Advanced filters */}
+            {showFilters && (
+              <div className="pb-3 space-y-2">
+                <div>
+                  <label className="text-[10px] text-foreground-2 uppercase tracking-wider block mb-1">
+                    Województwo
+                  </label>
+                  <select
+                    value={voivodeshipFilter}
+                    onChange={(e) => setVoivodeshipFilter(e.target.value)}
+                    className="w-full rounded-lg border border-white/10 bg-background-3/60 px-3 py-1.5 text-xs text-foreground focus:border-accent/50 focus:outline-none appearance-none"
+                  >
+                    {VOIVODESHIPS.map((v) => (
+                      <option key={v} value={v}>
+                        {v}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="text-[10px] text-foreground-2 uppercase tracking-wider block mb-1">
+                    Sortuj według
+                  </label>
+                  <div className="flex gap-1.5">
+                    {(
+                      [
+                        { value: "aktywnosc", label: "Aktywność", icon: <Zap size={10} /> },
+                        { value: "ocena", label: "Ocena", icon: <Star size={10} /> },
+                        { value: "opinie", label: "Opinie", icon: <Trophy size={10} /> },
+                      ] as const
+                    ).map((opt) => (
+                      <button
+                        key={opt.value}
+                        onClick={() => setSortMode(opt.value)}
+                        className={cn(
+                          "flex-1 flex items-center justify-center gap-1 rounded-lg py-1.5 text-[10px] border transition-all",
+                          sortMode === opt.value
+                            ? "border-accent/40 bg-accent/12 text-accent"
+                            : "border-white/8 text-foreground-2 hover:border-white/15"
                         )}
-                      </div>
-                    </div>
-                  </li>
-                ))}
-              </ul>
+                      >
+                        {opt.icon}
+                        {opt.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
             )}
           </div>
 
-          {/* Add spot button */}
-          {isLoggedIn && !addMode && (
-            <div className="p-4 border-t border-white/8">
-              <button
-                onClick={() => {
-                  setAddMode(true);
-                  setSidebarOpen(true);
-                }}
-                className="w-full flex items-center justify-center gap-2 rounded-xl bg-accent/90 hover:bg-accent text-background font-medium text-sm py-2.5 transition-colors"
-              >
-                <Plus size={16} />
-                Dodaj łowisko
-              </button>
-            </div>
-          )}
+          {/* List / Featured sections */}
+          <div className="flex-1 overflow-y-auto">
+            {!search && !typeFilter && voivodeshipFilter === "Wszystkie" && (
+              <>
+                {/* Top rated */}
+                <div className="px-4 pt-4 pb-2">
+                  <p className="flex items-center gap-1.5 text-[10px] font-semibold text-foreground-2 uppercase tracking-wider">
+                    <Trophy size={10} className="text-amber-400" />
+                    Najlepiej oceniane
+                  </p>
+                </div>
+                {topRated.map((spot) => (
+                  <SpotCard
+                    key={spot.id}
+                    spot={spot}
+                    selected={spot.id === selectedId}
+                    onClick={() => handleSelectSpot(spot.id)}
+                  />
+                ))}
 
-          {/* Add form */}
-          {addMode && (
-            <div className="p-4 border-t border-white/8 bg-background-3/50 space-y-3">
-              <div className="flex items-center justify-between">
-                <p className="text-xs font-semibold text-foreground">
-                  Nowe łowisko
-                </p>
+                {/* Recently active */}
+                <div className="px-4 pt-4 pb-2">
+                  <p className="flex items-center gap-1.5 text-[10px] font-semibold text-foreground-2 uppercase tracking-wider">
+                    <Flame size={10} className="text-accent" />
+                    Ostatnio aktywne
+                  </p>
+                </div>
+                {recentlyActive.map((spot) => (
+                  <SpotCard
+                    key={spot.id}
+                    spot={spot}
+                    selected={spot.id === selectedId}
+                    onClick={() => handleSelectSpot(spot.id)}
+                  />
+                ))}
+
+                <div className="px-4 pt-4 pb-2">
+                  <p className="flex items-center gap-1.5 text-[10px] font-semibold text-foreground-2 uppercase tracking-wider">
+                    <MapPin size={10} className="text-foreground-2" />
+                    Wszystkie łowiska
+                  </p>
+                </div>
+              </>
+            )}
+
+            {filteredSpots.length === 0 ? (
+              <div className="flex flex-col items-center justify-center gap-3 py-12 text-foreground-2">
+                <MapPin size={28} className="opacity-20" />
+                <p className="text-xs text-center">Brak łowisk dla wybranych filtrów.</p>
                 <button
-                  onClick={cancelAdd}
-                  className="text-foreground-2 hover:text-foreground"
+                  onClick={() => {
+                    setSearch("");
+                    setTypeFilter(null);
+                    setVoivodeshipFilter("Wszystkie");
+                  }}
+                  className="text-xs text-accent hover:underline"
                 >
-                  <X size={14} />
+                  Wyczyść filtry
                 </button>
               </div>
-
-              {!pendingCoords ? (
-                <p className="text-xs text-accent animate-pulse">
-                  Kliknij na mapie, aby wskazać lokalizację łowiska...
-                </p>
-              ) : (
-                <p className="text-xs text-green-400">
-                  Lokalizacja wybrana:{" "}
-                  {pendingCoords.lat.toFixed(4)},{" "}
-                  {pendingCoords.lng.toFixed(4)}
-                </p>
-              )}
-
-              <input
-                type="text"
-                placeholder="Nazwa łowiska *"
-                value={form.name}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, name: e.target.value }))
-                }
-                maxLength={100}
-                className="w-full rounded-lg border border-white/10 bg-background-2/60 px-3 py-2 text-xs text-foreground placeholder:text-foreground-2/60 focus:border-accent/50 focus:outline-none"
-              />
-
-              <select
-                value={form.type}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, type: e.target.value }))
-                }
-                className="w-full rounded-lg border border-white/10 bg-background-2/60 px-3 py-2 text-xs text-foreground focus:border-accent/50 focus:outline-none appearance-none"
-              >
-                {SPOT_TYPES.map((t) => (
-                  <option key={t.value} value={t.value}>
-                    {t.label}
-                  </option>
-                ))}
-              </select>
-
-              <textarea
-                placeholder="Opis (opcjonalnie)"
-                value={form.description}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, description: e.target.value }))
-                }
-                rows={2}
-                maxLength={300}
-                className="w-full rounded-lg border border-white/10 bg-background-2/60 px-3 py-2 text-xs text-foreground placeholder:text-foreground-2/60 focus:border-accent/50 focus:outline-none resize-none"
-              />
-
-              {saveError && (
-                <p className="text-xs text-red-400">{saveError}</p>
-              )}
-
-              <button
-                onClick={handleSave}
-                disabled={saving}
-                className="w-full flex items-center justify-center gap-2 rounded-xl bg-accent/90 hover:bg-accent text-background font-medium text-xs py-2.5 transition-colors disabled:opacity-60"
-              >
-                {saving ? (
-                  <Loader2 size={13} className="animate-spin" />
-                ) : (
-                  <Plus size={13} />
-                )}
-                Zapisz łowisko
-              </button>
-            </div>
-          )}
+            ) : (
+              filteredSpots.map((spot) => (
+                <SpotCard
+                  key={spot.id}
+                  spot={spot}
+                  selected={spot.id === selectedId}
+                  onClick={() => handleSelectSpot(spot.id)}
+                />
+              ))
+            )}
+          </div>
         </div>
       </aside>
 
-      {/* Map area */}
-      <div className="relative flex-1 h-full">
-        {addMode && (
-          <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10 rounded-xl border border-accent/30 bg-background-2/90 backdrop-blur-sm px-4 py-2 text-xs text-accent shadow-lg pointer-events-none">
-            Kliknij na mapie, aby wybrać lokalizację łowiska
-          </div>
+      {/* ── SIDEBAR TOGGLE BUTTON (desktop) ────────────────────────── */}
+      <button
+        onClick={() => setSidebarOpen((v) => !v)}
+        className={cn(
+          "hidden lg:flex absolute top-1/2 -translate-y-1/2 z-20 h-10 w-4 items-center justify-center rounded-r-lg border border-l-0 border-white/10 bg-background-2 text-foreground-2 hover:text-foreground transition-all shadow-xl",
+          sidebarOpen ? "left-[340px]" : "left-0"
         )}
+        style={{ transition: "left 0.3s" }}
+      >
+        <svg
+          width="6"
+          height="10"
+          viewBox="0 0 6 10"
+          className={cn("transition-transform", !sidebarOpen && "rotate-180")}
+        >
+          <path d="M5 1L1 5L5 9" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" />
+        </svg>
+      </button>
+
+      {/* ── MAP ────────────────────────────────────────────────────── */}
+      <div
+        className={cn(
+          "relative flex-1 h-full",
+          mobileTab === "lista" && "hidden lg:block"
+        )}
+      >
         <MapView
           spots={filteredSpots}
-          onMapClick={addMode ? handleMapClick : undefined}
-          pendingMarker={pendingCoords}
+          selectedId={selectedId}
+          onSelectSpot={handleSelectSpot}
         />
+
+        {/* Spot count badge on map */}
+        <div className="absolute bottom-6 left-4 z-10 rounded-xl border border-white/10 bg-background-2/85 backdrop-blur-md px-3 py-1.5 text-xs text-foreground-2 shadow-lg hidden lg:block">
+          <span className="font-semibold text-foreground">{filteredSpots.length}</span> łowisk na mapie
+        </div>
+
+        {/* Map legend */}
+        <div className="absolute top-4 right-4 z-10 rounded-xl border border-white/10 bg-background-2/85 backdrop-blur-md p-2.5 shadow-lg space-y-1.5">
+          {(Object.keys(TYPE_CONFIG) as SpotType[]).map((t) => {
+            const cfg = TYPE_CONFIG[t];
+            return (
+              <div key={t} className="flex items-center gap-2">
+                <div
+                  className="h-2.5 w-2.5 rounded-full"
+                  style={{ backgroundColor: cfg.color, boxShadow: `0 0 4px ${cfg.color}80` }}
+                />
+                <span className="text-[11px] text-foreground-2">{cfg.label}</span>
+              </div>
+            );
+          })}
+        </div>
       </div>
+
+      {/* ── DETAIL PANEL (desktop slide-in) ────────────────────────── */}
+      <div
+        className={cn(
+          "hidden lg:flex absolute right-0 top-0 h-full z-30 flex-col",
+          "bg-background-2 border-l border-white/10 shadow-[-20px_0_60px_rgba(0,0,0,0.5)]",
+          "transition-all duration-300 ease-in-out overflow-hidden",
+          selectedSpot ? "w-[400px] opacity-100" : "w-0 opacity-0 pointer-events-none"
+        )}
+      >
+        {selectedSpot && (
+          <SpotDetailPanel spot={selectedSpot} onClose={handleClosePanel} />
+        )}
+      </div>
+
+      {/* ── MOBILE BOTTOM SHEET (spot detail) ──────────────────────── */}
+      {selectedSpot && (
+        <div className="lg:hidden absolute inset-x-0 bottom-0 z-40 rounded-t-3xl border-t border-white/10 bg-background-2 shadow-[0_-20px_60px_rgba(0,0,0,0.6)] flex flex-col max-h-[75vh]">
+          {/* Drag handle */}
+          <div className="flex justify-center pt-3 pb-1 shrink-0">
+            <div className="h-1 w-10 rounded-full bg-white/20" />
+          </div>
+          <SpotDetailPanel spot={selectedSpot} onClose={handleClosePanel} />
+        </div>
+      )}
+
+      {/* ── MOBILE BOTTOM NAV ──────────────────────────────────────── */}
+      <div className="lg:hidden absolute bottom-0 inset-x-0 z-30 flex border-t border-white/10 bg-background-2/95 backdrop-blur-xl">
+        {/* Search mobile */}
+        <div className="flex-1 px-3 py-2">
+          <div className="relative">
+            <Search size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-foreground-2" />
+            <input
+              type="text"
+              placeholder="Szukaj..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full rounded-lg border border-white/10 bg-background-3 pl-7 pr-3 py-1.5 text-xs text-foreground placeholder:text-foreground-2/50 focus:border-accent/50 focus:outline-none"
+            />
+          </div>
+        </div>
+        <button
+          onClick={() => setMobileTab((t) => (t === "lista" ? "mapa" : "lista"))}
+          className="shrink-0 flex flex-col items-center justify-center gap-0.5 px-4 border-l border-white/8"
+        >
+          {mobileTab === "mapa" ? (
+            <>
+              <Fish size={16} className="text-foreground-2" />
+              <span className="text-[10px] text-foreground-2">Lista</span>
+            </>
+          ) : (
+            <>
+              <MapPin size={16} className="text-foreground-2" />
+              <span className="text-[10px] text-foreground-2">Mapa</span>
+            </>
+          )}
+        </button>
+      </div>
+
+      {/* ── MOBILE LIST VIEW ───────────────────────────────────────── */}
+      {mobileTab === "lista" && (
+        <div className="lg:hidden absolute inset-0 z-20 bg-background-2 overflow-y-auto pb-16">
+          <div className="px-4 pt-4 pb-2">
+            <div className="flex gap-1.5 mb-3">
+              <button
+                onClick={() => setTypeFilter(null)}
+                className={cn(
+                  "flex-1 rounded-lg py-1.5 text-[11px] border",
+                  typeFilter === null
+                    ? "border-white/20 bg-white/8 text-foreground"
+                    : "border-white/8 text-foreground-2"
+                )}
+              >
+                Wszystkie
+              </button>
+              {(Object.keys(TYPE_CONFIG) as SpotType[]).map((t) => {
+                const cfg = TYPE_CONFIG[t];
+                return (
+                  <button
+                    key={t}
+                    onClick={() => setTypeFilter((prev) => (prev === t ? null : t))}
+                    className="flex-1 rounded-lg py-1.5 text-[11px] border"
+                    style={
+                      typeFilter === t
+                        ? { backgroundColor: cfg.bg, borderColor: cfg.border, color: cfg.color }
+                        : { borderColor: "rgba(255,255,255,0.08)", color: "#99a1af" }
+                    }
+                  >
+                    {cfg.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+          {filteredSpots.map((spot) => (
+            <SpotCard
+              key={spot.id}
+              spot={spot}
+              selected={spot.id === selectedId}
+              onClick={() => handleSelectSpot(spot.id)}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 }

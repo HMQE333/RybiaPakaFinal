@@ -1,0 +1,158 @@
+Stwórz nowoczesny, responsywny moduł webowy o nazwie „Interaktywna Mapa Łowisk” dla platformy wędkarskiej RybiaPaka.
+
+To ma być jedna z najważniejszych sekcji całej platformy. Chcę, aby wyglądała premium, profesjonalnie i angażująco, tak żeby wędkarze chcieli wracać do niej często. UX ma być inspirowany wygodą Google Maps, ale wizualnie ma mieć własny klimat marki RybiaPaka, z lekkim feelingiem gry Fishing Planet. Styl ma być nowoczesny, ciemniejszy, związany z wodą, naturą i wędkarstwem. Nie może wyglądać jak zwykła sucha mapa ani jak nudny panel administracyjny.
+
+Główny cel:
+użytkownik ma wejść na mapę, szybko znaleźć interesujące łowisko, zobaczyć zdjęcia, opinie, porady od innych wędkarzy, gatunki ryb występujące w tym miejscu i mieć ochotę samemu coś dodać, zapisać lub wrócić później.
+
+Wymagania funkcjonalne:
+
+1. Główny widok mapy
+Zaprojektuj mapę podobną w działaniu do Google Maps.
+Mapa ma być interaktywna, płynna i wygodna.
+Może korzystać z Leaflet + OpenStreetMap lub podobnego rozwiązania, jeśli nie ma klucza do Google Maps.
+Mapa ma mieć customowy styl zgodny z RybiaPaka.
+Kolory powinny pasować do świata wędkarstwa:
+ciemna woda, granat, grafit, głęboka zieleń, naturalne akcenty, ewentualnie złoto lub pomarańcz jako kolor CTA.
+Mapa nie może być przesadnie kolorowa.
+Powinna wyglądać premium i lekko gamingowo, ale nadal profesjonalnie.
+
+2. Pineski łowisk
+Na mapie mają znajdować się pineski oznaczające łowiska.
+Każda pineska po kliknięciu otwiera atrakcyjną kartę lub panel boczny z informacjami o łowisku.
+Pineski mogą mieć różne style lub kolory w zależności od typu łowiska:
+PZW
+dzikie
+komercyjne
+
+3. Dane łowiska
+Każde łowisko powinno zawierać:
+nazwę łowiska
+typ łowiska
+lokalizację
+krótki opis
+miniaturę lub zdjęcie główne
+galerię zdjęć łowiska
+średnią ocenę
+liczbę opinii
+listę wskazówek od wędkarzy
+gatunki ryb oznaczone przez użytkowników
+ostatnią aktywność użytkowników
+
+4. Panel szczegółów łowiska
+Po kliknięciu pineski ma otwierać się elegancki panel z pełnymi informacjami.
+Panel powinien wyglądać jak nowoczesna karta premium.
+Powinien zawierać:
+duże zdjęcie główne
+nazwę łowiska
+typ łowiska
+średnią ocenę
+przyciski typu:
+Dodaj opinię
+Dodaj wskazówkę
+Dodaj zdjęcie
+Dodaj rybę
+Zapisz do ulubionych
+
+Niżej powinny być zakładki lub sekcje:
+Zdjęcia
+Opinie
+Wskazówki
+Ryby
+Informacje
+
+5. Opinie wędkarzy
+Użytkownicy powinni móc dodawać opinie o łowisku.
+Opinia powinna zawierać:
+ocenę w skali
+krótki komentarz
+imię lub nick użytkownika
+datę dodania
+opcjonalnie zdjęcie
+Opinie mają być pokazane estetycznie i czytelnie.
+
+6. Wskazówki od wędkarzy
+Użytkownicy powinni móc dodawać krótkie wskazówki, na przykład:
+gdzie najlepiej usiąść
+na co brało
+o jakiej porze warto przyjechać
+czy jest błoto
+czy da się dojechać autem
+czy miejsce nadaje się na nockę
+czy presja jest duża
+Te wskazówki powinny być wyświetlane w przejrzysty sposób, najlepiej w formie krótkich kart lub listy z ikonami.
+
+7. Ryby dodawane przez użytkowników
+Użytkownik może dodać zdjęcie złowionej ryby i oznaczyć gatunek, np. karp pełnołuski, leszcz, szczupak, sandacz.
+Sekcja „Ryby” przy łowisku ma pokazywać:
+miniaturę zdjęcia
+nazwę gatunku
+kto dodał
+kiedy dodano
+Opcjonalnie można dodać liczbę zgłoszeń danego gatunku.
+To ma budować społeczną bazę wiedzy o łowisku.
+
+8. Filtry i wyszukiwarka
+Dodaj rozbudowane filtrowanie mapy.
+Filtry powinny obejmować:
+typ łowiska
+gatunek ryb
+ocenę
+popularność
+ostatnią aktywność
+województwo lub region
+Dodaj też wyszukiwarkę nazw łowisk.
+
+9. Mechaniki zwiększające częste użycie
+Chcę, aby użytkownicy wracali regularnie.
+Dodaj elementy, które zachęcają do częstego korzystania, na przykład:
+sekcję „Ostatnio aktywne łowiska”
+sekcję „Najlepiej oceniane łowiska”
+sekcję „Nowe zdjęcia i nowe ryby”
+możliwość zapisania łowiska do ulubionych
+mały znacznik typu „ostatnio dodano wskazówkę” lub „nowa opinia”
+Nie rób z tego social media chaosu.
+To ma być uporządkowane, praktyczne i atrakcyjne.
+
+10. UX i styl marki
+Projekt ma pasować do marki RybiaPaka.
+Ma budzić skojarzenia z:
+nowoczesnym wędkarstwem
+profesjonalizmem
+przygodą
+społecznością
+naturą
+premium experience
+Zadbaj o dobry hierarchy layout, wyraźne CTA, nowoczesną typografię, estetyczne cienie, zaokrąglenia i spójny system komponentów.
+Całość ma wyglądać jak produkt, z którego można zrobić duży portal lub aplikację.
+
+11. Responsywność
+Widok musi działać świetnie na desktopie i telefonie.
+Na desktopie może być mapa plus panel boczny.
+Na mobile panel łowiska powinien działać jako bottom sheet lub wysuwany panel.
+
+12. Architektura techniczna
+Zbuduj to modularnie i czytelnie.
+Kod ma być schludny, dobrze podzielony na komponenty i gotowy do dalszej rozbudowy.
+Na początek użyj przykładowych danych mockowych.
+Przygotuj strukturę tak, aby później łatwo można było podpiąć backend, np. Supabase lub inną bazę danych.
+Dodaj przykładowe łowiska, przykładowe zdjęcia, przykładowe opinie, przykładowe wskazówki i przykładowe gatunki ryb.
+
+13. Efekt końcowy
+Nie chcę tylko zwykłej mapy z pinezkami.
+Chcę dopracowaną sekcję produktu, która:
+robi dobre pierwsze wrażenie
+zachęca do eksploracji
+buduje zaangażowanie społeczności
+wygląda jak coś między Google Maps a premium portalem wędkarskim
+pasuje do klimatu RybiaPaka
+ma potencjał, żeby stać się jedną z najczęściej używanych funkcji całej platformy
+
+Na końcu:
+wygeneruj kompletny działający front-end tej sekcji
+użyj przykładowych danych
+zadbaj o estetykę
+zastosuj nowoczesne komponenty
+dodaj sensowne animacje hover i transition
+nie przesadzaj z bajerami
+postaw na profesjonalny efekt premium
