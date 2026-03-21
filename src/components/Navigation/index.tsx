@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
@@ -7,6 +7,7 @@ import { Home, Megaphone, MessageSquare, Images, Menu } from "lucide-react";
 
 import { cn } from "@/utils";
 import SearchBar from "./SearchBar";
+import NotificationBell from "@/components/NotificationBell";
 
 type NavItem = {
   label: string;
@@ -24,6 +25,7 @@ const navItems: NavItem[] = [
 export default function Navigation() {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   const isActive = (href: string) => {
     if (!pathname) return false;
@@ -33,6 +35,17 @@ export default function Navigation() {
   useEffect(() => {
     setMobileOpen(false);
   }, [pathname]);
+
+  useEffect(() => {
+    fetch("/api/notifications", { credentials: "include", cache: "no-store" })
+      .then((r) => r.json())
+      .then((data) => {
+        if (typeof data?.count === "number") {
+          setIsLoggedIn(true);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   return (
     <div className="w-full bg-background/95 border-b border-background-3">
@@ -80,8 +93,11 @@ export default function Navigation() {
           </div>
         </div>
 
-        <div className="flex-1 min-w-0 sm:flex-none sm:pr-[30px]">
-          <SearchBar />
+        <div className="flex items-center gap-2 sm:pr-[30px]">
+          <div className="flex-1 min-w-0 sm:flex-none">
+            <SearchBar />
+          </div>
+          {isLoggedIn && <NotificationBell />}
         </div>
       </nav>
 

@@ -8,6 +8,41 @@ import { getNotificationSettings } from "@/lib/notificationSettingsDb";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+export async function PATCH(req: NextRequest) {
+  let session: { user?: { id?: number | string } } | null = null;
+  try {
+    session = await getSessionSafe(req.headers);
+  } catch {
+    session = null;
+  }
+
+  const userId = Number(session?.user?.id ?? "");
+  if (!Number.isInteger(userId) || userId <= 0) {
+    return NextResponse.json({ error: "UNAUTHORIZED" }, { status: 401 });
+  }
+
+  let ids: string[] | null = null;
+  try {
+    const body = await req.json();
+    if (Array.isArray(body?.ids)) {
+      ids = body.ids.filter((id: unknown) => typeof id === "string");
+    }
+  } catch {
+    // mark all
+  }
+
+  await prisma.notification.updateMany({
+    where: {
+      userId,
+      readAt: null,
+      ...(ids && ids.length > 0 ? { id: { in: ids } } : {}),
+    },
+    data: { readAt: new Date() },
+  });
+
+  return NextResponse.json({ ok: true }, { headers: { "Cache-Control": "no-store" } });
+}
+
 export async function GET(req: NextRequest) {
   let session: { user?: { id?: number | string } } | null = null;
   try {

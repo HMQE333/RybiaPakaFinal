@@ -1447,7 +1447,7 @@ export default function ProfileSettingsForm({
                 })}
               </div>
             </section>
-            <section className={sectionCard}>
+            <section id="powiadomienia" className={sectionCard}>
               <div className="space-y-1">
                 <h3 className="text-sm font-semibold text-foreground">
                   Powiadomienia
