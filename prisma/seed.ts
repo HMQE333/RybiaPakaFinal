@@ -31,13 +31,16 @@ const regions = [
 
 const fishingMethods = [
   "spinning",
+  "spławik",
   "feeder",
   "grunt",
   "karpiarstwo",
   "muchowa",
-  "splawik",
   "trolling",
   "podlodowe",
+  "morskie",
+  "sumowe",
+  "casting",
 ];
 
 const defaultSiteSettings = [

@@ -1441,7 +1441,7 @@ export default function ProfileSettingsForm({
                         onChange={() => toggleMethod(method.name)}
                         className="hidden"
                       />
-                      <span>{method.name}</span>
+                      <span className="capitalize">{method.name}</span>
                     </label>
                   );
                 })}

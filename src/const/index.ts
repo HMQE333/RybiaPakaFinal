@@ -36,14 +36,14 @@ export const getVoivodeshipLabel = (name?: string | null) => {
 
 export const fishingMethods = [
   "spinning",
-  "mucha",
-  "trolling",
-  "sumowe",
-  "morskie",
-  "casting",
-  "splawik",
+  "spławik",
   "feeder",
-  "metoda",
+  "grunt",
   "karpiarstwo",
+  "muchowa",
+  "trolling",
   "podlodowe",
+  "morskie",
+  "sumowe",
+  "casting",
 ];
