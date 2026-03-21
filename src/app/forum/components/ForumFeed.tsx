@@ -296,6 +296,7 @@ export default function ForumFeed() {
   const [isAuthenticated, setIsAuthenticated] = useState(
     initialAuthHint ?? false
   );
+  const [viewerAvatar, setViewerAvatar] = useState<string | null>(null);
   const [authReady, setAuthReady] = useState(initialAuthHint === true);
   const [comments, setComments] = useState<ForumComment[]>([]);
   const [commentsLoading, setCommentsLoading] = useState(false);
@@ -423,7 +424,9 @@ export default function ForumFeed() {
         : [];
       const threads = rawThreads.map(mapThread);
       const authed = Boolean(data?.viewer?.authenticated);
+      const avatar = (data?.viewer?.avatarUrl as string | null | undefined) ?? null;
       setIsAuthenticated(authed);
+      setViewerAvatar(avatar);
       setAuthReady(true);
       writeAuthHint(authed);
       setPosts(threads);
@@ -1239,6 +1242,7 @@ export default function ForumFeed() {
             : undefined
         }
         canComment={isAuthenticated && !selectedPost?.archived}
+        viewerAvatar={viewerAvatar}
       />
 
       <EditPostModal

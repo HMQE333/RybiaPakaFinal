@@ -100,10 +100,19 @@ export async function GET(req: NextRequest) {
     },
   });
 
+  let viewerAvatar: string | null = null;
+  if (viewerId) {
+    const vu = await prisma.user.findUnique({
+      where: { id: viewerId },
+      select: { avatarUrl: true, image: true },
+    });
+    viewerAvatar = vu?.avatarUrl || vu?.image || null;
+  }
+
   if (threads.length === 0) {
     return NextResponse.json({
       threads: [],
-      viewer: { authenticated: Boolean(viewerId) },
+      viewer: { authenticated: Boolean(viewerId), avatarUrl: viewerAvatar },
     });
   }
 
@@ -183,7 +192,7 @@ export async function GET(req: NextRequest) {
 
   return NextResponse.json({
     threads: payload,
-    viewer: { authenticated: Boolean(viewerId) },
+    viewer: { authenticated: Boolean(viewerId), avatarUrl: viewerAvatar },
   });
 }
 

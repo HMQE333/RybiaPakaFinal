@@ -30,6 +30,7 @@ interface CommentSectionProps {
   canComment?: boolean;
   commentDisabledReason?: string;
   hideComposer?: boolean;
+  viewerAvatar?: string | null;
 }
 
 const MENTION_REGEX = /@([a-zA-Z0-9_.-]{1,32})/g;
@@ -46,6 +47,7 @@ export default function CommentSection({
   canComment = true,
   commentDisabledReason,
   hideComposer = false,
+  viewerAvatar,
 }: CommentSectionProps) {
   const [newComment, setNewComment] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -308,11 +310,17 @@ export default function CommentSection({
       {shouldShowComposer && (
         <form onSubmit={handleSubmit} className="flex gap-3 mb-6">
           <img
-            src="/artwork/avatar_default.svg"
-            alt="Gość"
+            src={viewerAvatar ?? "/artwork/avatar_default.svg"}
+            alt="Twój avatar"
             loading="lazy"
             decoding="async"
-            className="w-9 h-9 rounded-full bg-background-2"
+            className="w-9 h-9 rounded-full object-cover bg-background-2"
+            onError={(e) =>
+              handleUploadImageError(
+                e.currentTarget,
+                "/artwork/avatar_default.svg"
+              )
+            }
           />
           <div className="flex-1">
             {replyTarget && (

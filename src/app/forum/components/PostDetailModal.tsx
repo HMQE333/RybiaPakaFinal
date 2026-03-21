@@ -63,6 +63,7 @@ interface PostDetailModalProps {
   onEdit?: () => void;
   onArchive?: () => void;
   canComment?: boolean;
+  viewerAvatar?: string | null;
 }
 
 export default function PostDetailModal({
@@ -81,6 +82,7 @@ export default function PostDetailModal({
   onEdit,
   onArchive,
   canComment,
+  viewerAvatar,
 }: PostDetailModalProps) {
   const postId = post?.id ?? null;
   const metaSource = post?.meta ?? [];
@@ -372,6 +374,7 @@ export default function PostDetailModal({
                 : undefined
             }
             hideComposer={isArchived}
+            viewerAvatar={viewerAvatar}
           />
         </div>
       </div>
