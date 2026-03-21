@@ -20,7 +20,7 @@ const navItems: NavItem[] = [
   { label: "Dyskusje", href: "/dyskusje", icon: Megaphone },
   { label: "Forum", href: "/forum", icon: MessageSquare },
   { label: "Galeria", href: "/galeria", icon: Images },
-  { label: "Mapa Łowisk", href: "/mapa-lowisk", icon: MapPin },
+  { label: "Łowiska", href: "/mapa-lowisk", icon: MapPin },
 ];
 
 export default function Navigation() {

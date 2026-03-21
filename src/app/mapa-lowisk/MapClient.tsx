@@ -162,7 +162,7 @@ export default function MapClient({ initialSpots, isLoggedIn }: Props) {
               <div className="flex items-center gap-2">
                 <Fish size={18} className="text-accent" />
                 <h1 className="text-sm font-semibold text-foreground">
-                  Mapa Łowisk
+                  Łowiska
                 </h1>
               </div>
               <span className="text-xs text-foreground-2">

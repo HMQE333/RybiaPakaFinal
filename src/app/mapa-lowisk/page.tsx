@@ -6,7 +6,7 @@ import MapClient from "./MapClient";
 export const dynamic = "force-dynamic";
 
 export const metadata = {
-  title: "Mapa Łowisk | RybiaPaka",
+  title: "Łowiska | RybiaPaka",
   description: "Interaktywna mapa łowisk wędkarskich w Polsce.",
 };
 
