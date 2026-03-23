@@ -87,6 +87,7 @@ export default function MapView({
       minZoom={6}
       maxZoom={18}
       style={{ height: "100%", width: "100%" }}
+      className="z-0"
       mapStyle="https://tiles.openfreemap.org/styles/liberty"
       cursor={addMode ? "crosshair" : undefined}
       onClick={(e) => {
