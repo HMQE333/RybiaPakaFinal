@@ -85,7 +85,7 @@ function resolveNotifMeta(item: NotificationItem): NotifMeta {
         icon: <Images size={15} className="text-purple-400" />,
         label: "Oznaczenie w galerii",
         preview: `${by} oznaczył Cię w galerii`,
-        href: "/galeria",
+        href: p.galleryId ? `/galeria?zdjecie=${p.galleryId}` : "/galeria",
       };
     case "NEW_MESSAGE":
       return {

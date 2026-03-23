@@ -271,10 +271,6 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    if (!message) {
-      return NextResponse.json({ error: "FAILED_TO_SAVE" }, { status: 500 });
-    }
-
     return NextResponse.json({ message: serializeCreatedMessage(message) }, { status: 201 });
   } catch (error) {
     const errorMessage = (error as Error)?.message ?? "";

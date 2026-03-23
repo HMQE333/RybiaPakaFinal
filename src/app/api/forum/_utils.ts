@@ -86,10 +86,16 @@ export async function resolveBoardId(rawName?: string | null) {
   const existing = await prisma.board.findFirst({ where: { name } });
   if (existing) return existing.id;
 
-  const created = await prisma.board.create({
-    data: { name: name.slice(0, 80) },
-  });
-  return created.id;
+  try {
+    const created = await prisma.board.create({
+      data: { name: name.slice(0, 80) },
+    });
+    return created.id;
+  } catch {
+    const retry = await prisma.board.findFirst({ where: { name } });
+    if (retry) return retry.id;
+    throw new Error("FAILED_TO_CREATE_BOARD");
+  }
 }
 
 export async function ensureRootPost(threadId: number) {
