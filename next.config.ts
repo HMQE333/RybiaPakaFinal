@@ -20,6 +20,7 @@ const csp = [
   "object-src 'none'",
   "frame-ancestors 'none'",
   "form-action 'self'",
+  "worker-src blob:",
   imgSrc,
   "font-src 'self' data:",
   "style-src 'self' 'unsafe-inline'",
