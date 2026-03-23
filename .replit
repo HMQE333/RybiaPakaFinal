@@ -54,6 +54,10 @@ outputType = "webview"
 localPort = 5000
 externalPort = 80
 
+[[ports]]
+localPort = 23636
+externalPort = 3001
+
 [deployment]
 deploymentTarget = "cloudrun"
 run = ["sh", "-c", "node ./scripts/run-prod.js"]
