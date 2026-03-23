@@ -84,15 +84,17 @@ export default function MapView({
     <MapContainer
       center={[52.1, 19.4]}
       zoom={6}
+      minZoom={6}
       style={{ height: "100%", width: "100%" }}
       className="z-0"
       zoomControl={false}
     >
       <TileLayer
-        url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
-        subdomains="abcd"
-        maxZoom={19}
+        url="https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png"
+        attribution='Map data: &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, <a href="http://viewfinderpanoramas.org">SRTM</a> | Map style: &copy; <a href="https://opentopomap.org">OpenTopoMap</a> (<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA</a>)'
+        subdomains={["a", "b", "c"]}
+        maxZoom={17}
+        minZoom={6}
       />
       {addMode && <ClickHandler onMapClick={onMapClick} />}
       {spots.map((spot) => (
